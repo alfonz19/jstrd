@@ -8,10 +8,13 @@ import purejavahidapi.PureJavaHidApi;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.geom.Line2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.ByteBuffer;
@@ -196,9 +199,8 @@ public class Main {
         g2.fillRect(0, 0, width, height);
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
             ImageIO.write(off_Image, "jpg", bos);
-            byte[] bytes = bos.toByteArray();
             g2.dispose();
-            return bytes;
+            return bos.toByteArray();
         } catch (IOException e) {
             throw new RuntimeException("write failed");
         }
@@ -230,10 +232,16 @@ public class Main {
      * setups the button image.
      */
     private void color(byte buttonIndex, Color color) {
+        byte[] buttonImage = createColoredIcon(color, 72);
+        setButtonImage(buttonIndex, buttonImage);
+
+
+    }
+
+    private void setButtonImage(byte buttonIndex, byte[] buttonImage) {
         int imageReportLength = /*1024*/1023;
         int imageReportHeaderLength = 8;
         int imageReportPayloadLength = imageReportLength - imageReportHeaderLength;
-        byte[] buttonImage = createColoredIcon(color, 72);
         writeByteArrayToFile(buttonImage, "/tmp/bi.data");
 
         //----------
@@ -244,7 +252,7 @@ public class Main {
         try {
             while (remainingBytes > 0) {
                 int sliceLength = Math.min(remainingBytes, imageReportPayloadLength);
-                int bytesSent = iteration * imageReportLength;//TODO MMUCHA: maybe +1??
+                int bytesSent = iteration * imageReportPayloadLength;//TODO MMUCHA: maybe +1??
                 boolean isLastPacket = sliceLength == remainingBytes;
 
 
@@ -279,7 +287,7 @@ public class Main {
                 int i = this.hidDevice.setOutputReport((byte) 0x02, finalPayload, finalPayload.length);
 
                 long diff = System.nanoTime() - start;
-                log.info("writing done: Written {} bytes, writing done in {}ms",i, TimeUnit.NANOSECONDS.toMillis(diff));
+                log.debug("writing done: Written {} bytes, writing done in {}ms",i, TimeUnit.NANOSECONDS.toMillis(diff));
 
                 byte[] tmp = new byte[sliceLength];
                 System.arraycopy(buttonImage, bytesSent, tmp, 0, sliceLength);
@@ -292,8 +300,6 @@ public class Main {
             System.err.println("failed");
             e.printStackTrace(System.err);
         }
-
-
     }
 
     /**
@@ -395,5 +401,103 @@ public class Main {
         String str = new String(payload);
         int i = str.indexOf('\0');
         return str.substring(0, i).trim();
+    }
+
+    public void magda() {
+        try {
+            BufferedImage image = readPhotoFromFile("/magda.jpg");
+
+            BufferedImage transformed = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
+            Graphics2D g2 = transformed.createGraphics();
+            g2.drawImage(image, 0, 0, null);
+            g2.dispose();
+
+
+            setButtonImage((byte)0, bufferedImageToByteArray(transformed));
+        } catch (Exception e) {
+            log.error("fail", e);
+        }
+    }
+
+    public void drawTest() {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+            BufferedImage image = new BufferedImage(75, 75, BufferedImage.TYPE_INT_BGR);
+            Graphics2D g2 = image.createGraphics();
+
+            g2.setColor(Color.RED);
+            g2.fillRect(0, 0, 75, 75);
+
+            g2.setColor(Color.BLUE);
+            g2.fillRect(15, 15, 45, 45);
+
+            g2.setColor(Color.BLACK);
+            g2.setStroke(new BasicStroke(4));
+            g2.drawLine(0, 0, 74, 74);
+            g2.drawLine(74, 0, 0, 74);
+
+            g2.dispose();
+
+            ImageIO.write(image, "jpg", bos);
+            ImageIO.write(image, "jpg", new File("/tmp/drawTest.jpg"));
+            byte[] bytes = bos.toByteArray();
+            setButtonImage((byte)1, bytes);
+        } catch (IOException e) {
+            throw new RuntimeException("write failed");
+        }
+
+    }
+
+    public void magda15() {
+        try {
+            BufferedImage image = readPhotoFromFile("/15test.jpg");
+            log.info("source has type: {}", image.getType());
+
+            int buttonIndex = 0;
+            for(int y = 0; y < 3; y++) {
+                for(int x = 0; x < 5; x++) {
+
+                    int xpos = x * (75 + 3);
+                    int ypos = y * (75 + 3);
+                    log.trace("writing button {} at {}x{}", buttonIndex, xpos, ypos);
+                    setButtonImage((byte)buttonIndex++, getImageBytesForButton(image, xpos, ypos));
+                    log.trace("---");
+//                    return;
+//                    System.out.println("X:"+x*(75+3));
+                }
+//                System.out.println("Y:"+y*(75+3));
+            }
+
+        } catch (Exception e) {
+            log.error("fail", e);
+        }
+    }
+
+    private byte[] getImageBytesForButton(BufferedImage sourceImage, int x, int y) {
+        int buttonSize = 75;
+        BufferedImage buttonImage = new BufferedImage(buttonSize, buttonSize, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2 = buttonImage.createGraphics();
+        g2.drawImage(sourceImage, 0, 0, buttonSize, buttonSize, x, y, buttonSize, buttonSize,Color.BLACK, (img, infoflags, xx, yy, width, height) -> false);
+        g2.dispose();
+
+        log.info("small button has image type {}", buttonImage.getType());
+
+        return bufferedImageToByteArray(buttonImage);
+    }
+
+    private byte[] bufferedImageToByteArray(BufferedImage buttonImage) {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+            ImageIO.write(buttonImage, "jpg", bos);
+            return bos.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException("write failed");
+        }
+    }
+
+    private BufferedImage readPhotoFromFile(String name) throws IOException {
+        InputStream resourceAsStream = Main.class.getResourceAsStream(name);
+        if (resourceAsStream == null) {
+            throw new RuntimeException("unable to read file");
+        }
+        return ImageIO.read(resourceAsStream);
     }
 }

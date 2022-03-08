@@ -26,5 +26,6 @@
 
 
   <logger name="alf" level="all"/>
+  <logger name="alf.Main" level="info"/>
 
 </configuration>
