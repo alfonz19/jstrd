@@ -325,4 +325,79 @@ public class Main {
         buffer.putInt(i);
         return buffer.array();
     }
+
+    /**
+     * not sure how to debug this. this should reset situation from any missing packets;
+     * as we're sending updates in multiple packets, if one is missing, the setting
+     * of keys will be broken. This should fix it. It's probably very uncommon,
+     * and in that case I'd rather do full reset. But yet it is here.
+     *
+     * Not sure if following is correct, streamdeck-ui uses array which contains only reportID
+     */
+    public void resetKeyUpdateStream() {
+        log.info("resetting");
+        int imageReportLength = /*1024*/1023;
+        byte[] payload = new byte[imageReportLength];
+        Arrays.fill(payload, (byte)0);
+
+        int i = this.hidDevice.setOutputReport((byte) 0x02, payload, payload.length);
+        log.info("writing blank key report to reset key stream., returned: {}", i);
+    }
+
+    public void setBrightness10() { setBrightness((byte)10);}
+    public void setBrightness25() { setBrightness((byte)25);}
+    public void setBrightness50() { setBrightness((byte)50);}
+    public void setBrightness100() { setBrightness((byte)100);}
+
+    /**
+     * Sets the global screen brightness of the StreamDeck, across all the physical buttons.
+     */
+    private void setBrightness(byte percent) {
+        //validate input.
+        percent = (byte)Math.min(Math.max(percent, 0), 100);
+
+        byte[] brightnessPayload = new byte[32];
+        Arrays.fill(brightnessPayload, (byte)0);
+
+        brightnessPayload[0] = 0x08;
+        brightnessPayload[1] = percent;
+
+        int i = this.hidDevice.setFeatureReport((byte) 0x03, brightnessPayload, brightnessPayload.length);
+        log.info("writing brightness bytes done, returned: {}", i);
+    }
+
+    //---------------------------------------------------------
+    /*
+
+
+
+
+
+
+    def get_serial_number(self):
+        """
+        Gets the serial number of the attached StreamDeck.
+
+        :rtype: str
+        :return: String containing the serial number of the attached device.
+        """
+
+        serial = self.device.read_feature(0x06, 32)
+        return self._extract_string(serial[2:])
+
+    def get_firmware_version(self):
+        """
+        Gets the firmware version of the attached StreamDeck.
+
+        :rtype: str
+        :return: String containing the firmware version of the attached device.
+        """
+
+        version = self.device.read_feature(0x05, 32)
+        return self._extract_string(version[6:])
+
+
+
+
+    * */
 }
