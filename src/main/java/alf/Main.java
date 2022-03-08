@@ -344,6 +344,7 @@ public class Main {
         log.info("writing blank key report to reset key stream., returned: {}", i);
     }
 
+    public void setBrightness0() { setBrightness((byte)0);}
     public void setBrightness10() { setBrightness((byte)10);}
     public void setBrightness25() { setBrightness((byte)25);}
     public void setBrightness50() { setBrightness((byte)50);}
