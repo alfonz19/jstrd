@@ -367,38 +367,33 @@ public class Main {
         log.info("writing brightness bytes done, returned: {}", i);
     }
 
-    //---------------------------------------------------------
-    /*
+    /**Gets the serial number of the attached StreamDeck.*/
+    public void getSerialNumber() {
+        byte[] payload = new byte[32];
+        payload[0] = 0x06;
+        int i = this.hidDevice.getFeatureReport(payload, 32);
+        log.info("writing to get serial version done, returned: {}", i);
 
+//        log.info("result data: {}", Arrays.toString(payload));
+        byte[] subArray = Arrays.copyOfRange(payload, 2, payload.length);
+        log.info("transformed: {}", firmwareOrSerialVersionToHumanString(subArray));
 
+    }
+    /**Gets the serial number of the attached StreamDeck.*/
+    public void getFirmwareVersion() {
+        byte[] payload = new byte[32];
+        payload[0] = 0x05;
+        int i = this.hidDevice.getFeatureReport(payload, 32);
+        log.info("writing to get serial version done, returned: {}", i);
 
+//        log.info("result data: {}", Arrays.toString(payload));
+        byte[] subArray = Arrays.copyOfRange(payload, 6, payload.length);
+        log.info("transformed: {}", firmwareOrSerialVersionToHumanString(subArray));
+    }
 
-
-
-    def get_serial_number(self):
-        """
-        Gets the serial number of the attached StreamDeck.
-
-        :rtype: str
-        :return: String containing the serial number of the attached device.
-        """
-
-        serial = self.device.read_feature(0x06, 32)
-        return self._extract_string(serial[2:])
-
-    def get_firmware_version(self):
-        """
-        Gets the firmware version of the attached StreamDeck.
-
-        :rtype: str
-        :return: String containing the firmware version of the attached device.
-        """
-
-        version = self.device.read_feature(0x05, 32)
-        return self._extract_string(version[6:])
-
-
-
-
-    * */
+    private String firmwareOrSerialVersionToHumanString(byte[] payload) {
+        String str = new String(payload);
+        int i = str.indexOf('\0');
+        return str.substring(0, i).trim();
+    }
 }
