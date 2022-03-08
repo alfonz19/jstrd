@@ -347,16 +347,15 @@ public class Main {
 
     //-----------------------------------------------------------------------------------------------------
 
-    public void riColor1() {
-        riColor((byte)0, Color.RED);
-    }
-
+    /**
+     * sets some color to every button
+     */
     public void riColor() {
         riColor((byte)0, Color.RED);
         riColor((byte)1, Color.GREEN);
         riColor((byte)2, Color.ORANGE);
         riColor((byte)3, Color.GRAY);
-        riColor((byte)4, Color.BLACK);
+        riColor((byte)4, Color.WHITE);
         riColor((byte)5, Color.BLUE);
         riColor((byte)6, Color.CYAN);
         riColor((byte)7, Color.MAGENTA);
@@ -365,11 +364,16 @@ public class Main {
         riColor((byte)9, Color.GREEN);
         riColor((byte)10, Color.ORANGE);
         riColor((byte)11, Color.GRAY);
-        riColor((byte)12, Color.BLACK);
+        riColor((byte)12, Color.WHITE);
         riColor((byte)13, Color.BLUE);
         riColor((byte)14, Color.CYAN);
     }
 
+    /**
+     * setups the button image.
+     * @param buttonIndex
+     * @param color
+     */
     private void riColor(byte buttonIndex, Color color) {
         int imageReportLength = /*1024*/1023;
         int imageReportHeaderLength = 8;
@@ -435,6 +439,19 @@ public class Main {
         }
 
 
+    }
+
+    /**
+     * will reset device.
+     */
+    public void resetDevice() {
+        byte[] resetPayload = new byte[32];
+        Arrays.fill(resetPayload, (byte)0);
+
+        resetPayload[0] = 0x02;
+
+        int i = this.hidDevice.setFeatureReport((byte) 0x03, resetPayload, resetPayload.length);
+        log.info("writing reset bytes done, returned: {}", i);
     }
 
     private void writeByteArrayToFile(byte[] byteArray, String fileName) {
