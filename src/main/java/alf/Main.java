@@ -196,7 +196,9 @@ public class Main {
         g2.fillRect(0, 0, width, height);
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
             ImageIO.write(off_Image, "jpg", bos);
-            return bos.toByteArray();
+            byte[] bytes = bos.toByteArray();
+            g2.dispose();
+            return bytes;
         } catch (IOException e) {
             throw new RuntimeException("write failed");
         }
