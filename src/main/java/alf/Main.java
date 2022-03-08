@@ -6,9 +6,14 @@ import purejavahidapi.HidDeviceInfo;
 import purejavahidapi.InputReportListener;
 import purejavahidapi.PureJavaHidApi;
 
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.plugins.jpeg.JPEGImageWriteParam;
+import javax.imageio.stream.ImageOutputStream;
+import javax.imageio.stream.MemoryCacheImageOutputStream;
 import java.awt.*;
-import java.awt.geom.Line2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -33,6 +38,7 @@ public class Main {
     private static final Logger log = LoggerFactory.getLogger(Main.class);
     public static final int VENDOR_ID = 4057;
     public static final int PRODUCT_ID = 128;
+    public static final int ICON_SIZE = 72;
     private HidDevice hidDevice = null;
     private boolean terminate = false;
 
@@ -187,16 +193,11 @@ public class Main {
         return null;
     }
 
-    private static byte[] createColoredIcon(Color color, int iconSize) {
-        int width = iconSize;
-        int height = iconSize;
-        BufferedImage off_Image =
-                new BufferedImage(width, height,
-                        BufferedImage.TYPE_INT_RGB);
-
+    private static byte[] createColoredIcon(Color color) {
+        BufferedImage off_Image = new BufferedImage(ICON_SIZE, ICON_SIZE, BufferedImage.TYPE_INT_RGB);
         Graphics2D g2 = off_Image.createGraphics();
         g2.setColor(color);
-        g2.fillRect(0, 0, width, height);
+        g2.fillRect(0, 0, ICON_SIZE, ICON_SIZE);
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
             ImageIO.write(off_Image, "jpg", bos);
             g2.dispose();
@@ -232,7 +233,7 @@ public class Main {
      * setups the button image.
      */
     private void color(byte buttonIndex, Color color) {
-        byte[] buttonImage = createColoredIcon(color, 72);
+        byte[] buttonImage = createColoredIcon(color);
         setButtonImage(buttonIndex, buttonImage);
 
 
@@ -413,7 +414,7 @@ public class Main {
             g2.dispose();
 
 
-            setButtonImage((byte)0, bufferedImageToByteArray(transformed));
+            setButtonImage((byte)0, bufferedImageToByteArray(image));
         } catch (Exception e) {
             log.error("fail", e);
         }
@@ -421,68 +422,105 @@ public class Main {
 
     public void drawTest() {
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-            BufferedImage image = new BufferedImage(75, 75, BufferedImage.TYPE_INT_BGR);
+
+            BufferedImage image = new BufferedImage(ICON_SIZE, ICON_SIZE, BufferedImage.TYPE_INT_RGB);
             Graphics2D g2 = image.createGraphics();
 
             g2.setColor(Color.RED);
-            g2.fillRect(0, 0, 75, 75);
+            g2.fillRect(0, 0, ICON_SIZE, ICON_SIZE);
 
             g2.setColor(Color.BLUE);
             g2.fillRect(15, 15, 45, 45);
 
             g2.setColor(Color.BLACK);
-            g2.setStroke(new BasicStroke(4));
-            g2.drawLine(0, 0, 74, 74);
-            g2.drawLine(74, 0, 0, 74);
+//            g2.setStroke(new BasicStroke(4));
+
+            int lastPixel = ICON_SIZE - 1;
+            g2.drawLine(0, 0, lastPixel, lastPixel);
+            g2.drawLine(lastPixel, 0, 0, lastPixel);
 
             g2.dispose();
 
+//            byte[] bytes = writeJpg2(image);
             ImageIO.write(image, "jpg", bos);
             ImageIO.write(image, "jpg", new File("/tmp/drawTest.jpg"));
             byte[] bytes = bos.toByteArray();
-            setButtonImage((byte)1, bytes);
+            setButtonImage((byte)6, bytes);
         } catch (IOException e) {
             throw new RuntimeException("write failed");
         }
 
     }
 
-    public void magda15() {
-        try {
-            BufferedImage image = readPhotoFromFile("/15test.jpg");
-            log.info("source has type: {}", image.getType());
+    private byte[] writeJpg2(BufferedImage image) throws IOException {
+        JPEGImageWriteParam jpegParams = new JPEGImageWriteParam(null);
+        jpegParams.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+        jpegParams.setCompressionQuality(1f);
 
-            int buttonIndex = 0;
-            for(int y = 0; y < 3; y++) {
-                for(int x = 0; x < 5; x++) {
+        final ImageWriter writer = ImageIO.getImageWritersByFormatName("jpg").next();
+// specifies where the jpg image has to be written
+//        writer.setOutput(new FileImageOutputStream(new File(folder.toString() + "/" + filename + ".jpg")));
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        writer.setOutput(new MemoryCacheImageOutputStream(bos));
 
-                    int xpos = x * (75 + 3);
-                    int ypos = y * (75 + 3);
-                    log.trace("writing button {} at {}x{}", buttonIndex, xpos, ypos);
-                    setButtonImage((byte)buttonIndex++, getImageBytesForButton(image, xpos, ypos));
-                    log.trace("---");
-//                    return;
-//                    System.out.println("X:"+x*(75+3));
-                }
-//                System.out.println("Y:"+y*(75+3));
-            }
-
-        } catch (Exception e) {
-            log.error("fail", e);
-        }
+// writes the file with given compression level
+// from your JPEGImageWriteParam instance
+        writer.write(null, new IIOImage(image, null, null), jpegParams);
+        writer.dispose();
+        return bos.toByteArray();
     }
 
-    private byte[] getImageBytesForButton(BufferedImage sourceImage, int x, int y) {
-        int buttonSize = 75;
-        BufferedImage buttonImage = new BufferedImage(buttonSize, buttonSize, BufferedImage.TYPE_INT_RGB);
-        Graphics2D g2 = buttonImage.createGraphics();
-        g2.drawImage(sourceImage, 0, 0, buttonSize, buttonSize, x, y, buttonSize, buttonSize,Color.BLACK, (img, infoflags, xx, yy, width, height) -> false);
-        g2.dispose();
+    private byte[] writeJpg(BufferedImage image) throws IOException {
+        ImageWriter jpgWriter = ImageIO.getImageWritersByFormatName("jpg").next();
+        ImageWriteParam jpgWriteParam = jpgWriter.getDefaultWriteParam();
+        jpgWriteParam.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+        jpgWriteParam.setCompressionQuality(1.0f);
 
-        log.info("small button has image type {}", buttonImage.getType());
-
-        return bufferedImageToByteArray(buttonImage);
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ImageOutputStream outputStream = new MemoryCacheImageOutputStream(bos);
+        jpgWriter.setOutput(outputStream);
+        IIOImage outputImage = new IIOImage(image, null, null);
+        jpgWriter.write(null, outputImage, jpgWriteParam);
+        jpgWriter.dispose();
+        return bos.toByteArray();
     }
+
+//    public void magda15() {
+//        try {
+//            BufferedImage image = readPhotoFromFile("/15test.jpg");
+//            log.info("source has type: {}", image.getType());
+//
+//            int buttonIndex = 0;
+//            for(int y = 0; y < 3; y++) {
+//                for(int x = 0; x < 5; x++) {
+//
+//                    int xpos = x * (INCORRECT_ICON_SIZE + 3);
+//                    int ypos = y * (INCORRECT_ICON_SIZE + 3);
+//                    log.trace("writing button {} at {}x{}", buttonIndex, xpos, ypos);
+//                    setButtonImage((byte)buttonIndex++, getImageBytesForButton(image, xpos, ypos));
+//                    log.trace("---");
+////                    return;
+////                    System.out.println("X:"+x*(75+3));
+//                }
+////                System.out.println("Y:"+y*(75+3));
+//            }
+//
+//        } catch (Exception e) {
+//            log.error("fail", e);
+//        }
+//    }
+//
+//    private byte[] getImageBytesForButton(BufferedImage sourceImage, int x, int y) {
+//        int buttonSize = INCORRECT_ICON_SIZE;
+//        BufferedImage buttonImage = new BufferedImage(buttonSize, buttonSize, BufferedImage.TYPE_INT_RGB);
+//        Graphics2D g2 = buttonImage.createGraphics();
+//        g2.drawImage(sourceImage, 0, 0, buttonSize, buttonSize, x, y, buttonSize, buttonSize,Color.BLACK, (img, infoflags, xx, yy, width, height) -> false);
+//        g2.dispose();
+//
+//        log.info("small button has image type {}", buttonImage.getType());
+//
+//        return bufferedImageToByteArray(buttonImage);
+//    }
 
     private byte[] bufferedImageToByteArray(BufferedImage buttonImage) {
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
