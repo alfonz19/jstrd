@@ -6,14 +6,21 @@ import purejavahidapi.HidDeviceInfo;
 import purejavahidapi.InputReportListener;
 import purejavahidapi.PureJavaHidApi;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -32,7 +39,7 @@ public class Main {
         new Main().test();
     }
 
-    public void test() {
+    private void test() {
         HidDeviceInfo info = findStreamDeckDevice_noLog();
 //        printInfoAboutDevice(info);
 
@@ -114,11 +121,13 @@ public class Main {
                 }
             });
 
+            System.out.println(Arrays.stream(Main.class.getDeclaredMethods()).filter(e->Modifier.isPublic(e.getModifiers())).filter(e->e.getParameterTypes().length ==0).map(Method::getName).collect(Collectors.joining("\n", "existing public no-arg methods: \n", "")));
             System.out.println("Submit commands(quit): ");
             Scanner scanner = new Scanner(System.in);
-            outer: while (scanner.hasNextLine()) {
+            while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
 
+                if (line.isEmpty()) continue;
                 if (line.equals("quit")) { break; }
 
                 try {
@@ -130,6 +139,8 @@ public class Main {
                     e.printStackTrace();
                 }
             }
+
+//            riColor1();
         } catch (IOException e) {
             throw new RuntimeException("Unable to open", e);
         }
@@ -238,7 +249,7 @@ public class Main {
     }
 
     private synchronized void internalDrawImage(int keyIndex, Color color) {
-        byte[] imgData = createColoredIcon(color);
+        byte[] imgData = createColoredIcon(color, ICON_SIZE);
         byte[] page1 = generatePage1(keyIndex, imgData);
         byte[] page2 = generatePage2(keyIndex, imgData);
         this.hidDevice.setOutputReport((byte) 0x02, page1, page1.length);
@@ -289,21 +300,41 @@ public class Main {
         return p2;
     }
 
-    private static byte[] createColoredIcon(Color color) {
-        BufferedImage img = new BufferedImage(ICON_SIZE, ICON_SIZE, BufferedImage.TYPE_INT_ARGB);
+    private static byte[] createColoredIcon_defunct(Color color, int iconSize) {
+        BufferedImage img = new BufferedImage(iconSize, iconSize, /*BufferedImage.TYPE_INT_ARGB*/BufferedImage.TYPE_INT_RGB);
         Graphics2D g = img.createGraphics();
         g.setColor(color);
-        g.fillRect(0, 0, ICON_SIZE, ICON_SIZE);
+        g.fillRect(0, 0, iconSize, iconSize);
+        byte[] bytes = bufferedImageToByteArrayData(img, iconSize);
         g.dispose();
-        return bufferedImageToByteArrayData(img);
+        return bytes;
     }
 
-    private static byte[] bufferedImageToByteArrayData(BufferedImage img) {
+    private static byte[] createColoredIcon(Color color, int iconSize) {
+        int width = iconSize;
+        int height = iconSize;
+        BufferedImage off_Image =
+                new BufferedImage(width, height,
+                        BufferedImage.TYPE_INT_RGB);
+
+        Graphics2D g2 = off_Image.createGraphics();
+        g2.setColor(color);
+        g2.fillRect(0, 0, width, height);
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+            ImageIO.write(off_Image, "jpg", bos);
+            return bos.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException("write failed");
+        }
+    }
+
+
+    private static byte[] bufferedImageToByteArrayData(BufferedImage img, int iconSize) {
         int[] pixels = ((DataBufferInt) img.getRaster().getDataBuffer()).getData();
-        byte[] imgData = new byte[ICON_SIZE * ICON_SIZE * 3];
+        byte[] imgData = new byte[iconSize * iconSize * 3];
         int imgDataCount = 0;
         // remove the alpha channel
-        for (int i = 0; i < ICON_SIZE * ICON_SIZE; i++) {
+        for (int i = 0; i < iconSize * iconSize; i++) {
             // RGB -> BGR
             imgData[imgDataCount++] = (byte) ((pixels[i] >> 16) & 0xFF);
             imgData[imgDataCount++] = (byte) (pixels[i] & 0xFF);
@@ -311,5 +342,119 @@ public class Main {
         }
 
         return imgData;
+    }
+
+
+    //-----------------------------------------------------------------------------------------------------
+
+    public void riColor1() {
+        riColor((byte)0, Color.RED);
+    }
+
+    public void riColor() {
+        riColor((byte)0, Color.RED);
+        riColor((byte)1, Color.GREEN);
+        riColor((byte)2, Color.ORANGE);
+        riColor((byte)3, Color.GRAY);
+        riColor((byte)4, Color.BLACK);
+        riColor((byte)5, Color.BLUE);
+        riColor((byte)6, Color.CYAN);
+        riColor((byte)7, Color.MAGENTA);
+
+        riColor((byte)8, Color.RED);
+        riColor((byte)9, Color.GREEN);
+        riColor((byte)10, Color.ORANGE);
+        riColor((byte)11, Color.GRAY);
+        riColor((byte)12, Color.BLACK);
+        riColor((byte)13, Color.BLUE);
+        riColor((byte)14, Color.CYAN);
+    }
+
+    private void riColor(byte buttonIndex, Color color) {
+        int imageReportLength = /*1024*/1023;
+        int imageReportHeaderLength = 8;
+        int imageReportPayloadLength = imageReportLength - imageReportHeaderLength;
+        byte[] buttonImage = createColoredIcon(color, 72);
+        writeByteArrayToFile(buttonImage, "/tmp/bi.data");
+
+        //----------
+        int iteration = 0;
+        int payloadLength = buttonImage.length;
+        int remainingBytes = payloadLength;
+
+        try {
+            while (remainingBytes > 0) {
+                int sliceLength = Math.min(remainingBytes, imageReportPayloadLength);
+                int bytesSent = iteration * imageReportLength;//TODO MMUCHA: maybe +1??
+                boolean isLastPacket = sliceLength == remainingBytes;
+
+
+//            byte finalizer = sliceLength == remainingBytes ? (byte)1 : (byte)0;
+
+                // These components are nothing else but UInt16 low-endian
+                // representations of the length of the image payload, and iteration.
+                byte bitmaskedLength = (byte)(sliceLength & 0xFF);
+                byte shiftedLength = (byte)(sliceLength >> 8);
+                byte bitmaskedIteration = (byte)(iteration & 0xFF);
+                byte shiftedIteration = (byte)(iteration >> 8);
+
+
+                byte[] header = new byte[]{
+//                    0x02, //it seems, that this is written by our hid library, so we must not write it here.
+                        0x07,
+                        buttonIndex,
+                        (byte) (isLastPacket ? 1 : 0),
+                        bitmaskedLength,
+                        shiftedLength,
+                        bitmaskedIteration,
+                        shiftedIteration};
+//            var payload = header.Concat(new ArraySegment<byte>(content, bytesSent, sliceLength)).ToArray();
+//            var padding = new byte[ImageReportLength - payload.Length];
+
+                byte[] finalPayload = new byte[imageReportLength];
+                Arrays.fill(finalPayload, (byte)0);
+                System.arraycopy(header, 0, finalPayload, 0, header.length);
+                System.arraycopy(buttonImage, bytesSent, finalPayload, header.length, sliceLength);
+
+                long start = System.nanoTime();
+                int i = this.hidDevice.setOutputReport((byte) 0x02, finalPayload, finalPayload.length);
+
+                long diff = System.nanoTime() - start;
+                log.info("writing done: Written {} bytes, writing done in {}ms",i, TimeUnit.NANOSECONDS.toMillis(diff));
+
+                byte[] tmp = new byte[sliceLength];
+                System.arraycopy(buttonImage, bytesSent, tmp, 0, sliceLength);
+                writeByteArrayToFile(tmp, "/tmp/payload"+iteration+".data");
+                remainingBytes -= sliceLength;
+                iteration++;
+            }
+
+        } catch (Exception e) {
+            System.err.println("failed");
+            e.printStackTrace(System.err);
+        }
+
+
+    }
+
+    private void writeByteArrayToFile(byte[] byteArray, String fileName) {
+        try (FileOutputStream fos = new FileOutputStream(fileName)) {
+            fos.write(byteArray);
+        } catch (Exception e) {
+            System.err.println("argh");
+            e.printStackTrace(System.err);
+        }
+    }
+
+    public static byte[] intAsLittleEndian(int i) {
+        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
+        //IMPORTANT!
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        buffer.putInt(i);
+        return buffer.array();
+    }
+
+    public void cc() {
+        System.out.println(createColoredIcon(Color.red, 10).length);
     }
 }
