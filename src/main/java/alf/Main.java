@@ -9,7 +9,6 @@ import purejavahidapi.PureJavaHidApi;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferInt;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -206,31 +205,29 @@ public class Main {
     /**
      * sets some color to every button
      */
-    public void riColor() {
-        riColor((byte)0, Color.RED);
-        riColor((byte)1, Color.GREEN);
-        riColor((byte)2, Color.ORANGE);
-        riColor((byte)3, Color.GRAY);
-        riColor((byte)4, Color.WHITE);
-        riColor((byte)5, Color.BLUE);
-        riColor((byte)6, Color.CYAN);
-        riColor((byte)7, Color.MAGENTA);
+    public void color() {
+        color((byte)0, Color.RED);
+        color((byte)1, Color.GREEN);
+        color((byte)2, Color.ORANGE);
+        color((byte)3, Color.GRAY);
+        color((byte)4, Color.WHITE);
+        color((byte)5, Color.BLUE);
+        color((byte)6, Color.CYAN);
+        color((byte)7, Color.MAGENTA);
 
-        riColor((byte)8, Color.RED);
-        riColor((byte)9, Color.GREEN);
-        riColor((byte)10, Color.ORANGE);
-        riColor((byte)11, Color.GRAY);
-        riColor((byte)12, Color.WHITE);
-        riColor((byte)13, Color.BLUE);
-        riColor((byte)14, Color.CYAN);
+        color((byte)8, Color.RED);
+        color((byte)9, Color.GREEN);
+        color((byte)10, Color.ORANGE);
+        color((byte)11, Color.GRAY);
+        color((byte)12, Color.WHITE);
+        color((byte)13, Color.BLUE);
+        color((byte)14, Color.CYAN);
     }
 
     /**
      * setups the button image.
-     * @param buttonIndex
-     * @param color
      */
-    private void riColor(byte buttonIndex, Color color) {
+    private void color(byte buttonIndex, Color color) {
         int imageReportLength = /*1024*/1023;
         int imageReportHeaderLength = 8;
         int imageReportPayloadLength = imageReportLength - imageReportHeaderLength;
@@ -325,9 +322,5 @@ public class Main {
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         buffer.putInt(i);
         return buffer.array();
-    }
-
-    public void cc() {
-        System.out.println(createColoredIcon(Color.red, 10).length);
     }
 }
