@@ -405,20 +405,154 @@ public class Main {
     }
 
     public void magda() {
+        magda2();
+        magda3();
+        magda4();
+        magda5();
+        magda6();
+        magda7();
+        magda8();
+    }
+
+    //dysfunctional  //this just writes image without flipping it twice. wont work.
+//    public void magda1() {
+//        try {
+//            BufferedImage image = readPhotoFromFile("/magda.jpg");
+//
+//            BufferedImage transformed = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
+//            Graphics2D g2 = transformed.createGraphics();
+//            g2.drawImage(image, 0, 0, null);
+//            g2.dispose();
+//
+//
+//            setButtonImage((byte)0, bufferedImageToByteArray(transformed));
+//        } catch (Exception e) {
+//            log.error("fail", e);
+//        }
+//    }
+
+
+    //finally somehow working, but why?
+    public void magda2() {
         try {
             BufferedImage image = readPhotoFromFile("/magda.jpg");
 
             BufferedImage transformed = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
             Graphics2D g2 = transformed.createGraphics();
-            g2.drawImage(image, 0, 0, null);
+            g2.drawImage(image, ICON_SIZE, ICON_SIZE, -1*ICON_SIZE, -1*ICON_SIZE, null);
             g2.dispose();
 
 
-            setButtonImage((byte)0, bufferedImageToByteArray(image));
+            setButtonImage((byte)1, bufferedImageToByteArray(transformed));
         } catch (Exception e) {
             log.error("fail", e);
         }
     }
+
+    //finally somehow working, but why?
+    public void magda3() {
+        try {
+            BufferedImage image = readPhotoFromFile("/magda.jpg");
+
+            BufferedImage transformed = new BufferedImage(ICON_SIZE, ICON_SIZE, BufferedImage.TYPE_INT_RGB);
+            Graphics2D g2 = transformed.createGraphics();
+            g2.setClip(0,0,ICON_SIZE,ICON_SIZE);
+            g2.drawImage(image, ICON_SIZE, ICON_SIZE, -1*ICON_SIZE, -1*ICON_SIZE, null);
+            g2.dispose();
+
+
+            setButtonImage((byte)2, bufferedImageToByteArray(transformed));
+        } catch (Exception e) {
+            log.error("fail", e);
+        }
+    }
+
+    public void magda4() {
+        try {
+            BufferedImage image = readPhotoFromFile("/magda.jpg");
+
+            BufferedImage transformed = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
+            Graphics2D g2 = transformed.createGraphics();
+            g2.drawImage(image, ICON_SIZE, ICON_SIZE, -1*ICON_SIZE, -1*ICON_SIZE, null);
+            g2.dispose();
+
+            byte[] bytes = writeJpgWithMaxQuality2(transformed);
+
+            setButtonImage((byte)3, bytes);
+
+        } catch (Exception e) {
+            log.error("fail", e);
+        }
+    }
+    public void magda5() {
+        try {
+            BufferedImage image = readPhotoFromFile("/magda.jpg");
+
+            BufferedImage transformed = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
+            Graphics2D g2 = transformed.createGraphics();
+            g2.drawImage(image, ICON_SIZE, ICON_SIZE, -1*ICON_SIZE, -1*ICON_SIZE, null);
+            g2.dispose();
+
+            byte[] bytes = writeJpgWithMaxQuality(transformed);
+
+            setButtonImage((byte)4, bytes);
+
+        } catch (Exception e) {
+            log.error("fail", e);
+        }
+    }
+
+    //finally somehow working, but why?
+    public void magda6() {
+        try {
+            BufferedImage image = readPhotoFromFile("/magda.jpg");
+
+            BufferedImage transformed = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
+            Graphics2D g2 = transformed.createGraphics();
+            g2.drawImage(image, ICON_SIZE-1, ICON_SIZE-1, -1*ICON_SIZE, -1*ICON_SIZE, null);
+            g2.dispose();
+
+
+            setButtonImage((byte)5, bufferedImageToByteArray(transformed));
+        } catch (Exception e) {
+            log.error("fail", e);
+        }
+    }
+    //finally somehow working, but why?
+    public void magda7() {
+        try {
+            BufferedImage image = readPhotoFromFile("/magda.jpg");
+
+            BufferedImage transformed = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2 = transformed.createGraphics();
+            g2.drawImage(image, ICON_SIZE, ICON_SIZE, -1*ICON_SIZE, -1*ICON_SIZE, null);
+            g2.dispose();
+
+
+            setButtonImage((byte)6, bufferedImageToByteArray(transformed));
+        } catch (Exception e) {
+            log.error("fail", e);
+        }
+    }
+
+    //finally somehow working, but why?
+    public void magda8() {
+        try {
+            BufferedImage image = readPhotoFromFile("/magda.jpg");
+
+            BufferedImage transformed = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
+            Graphics2D g2 = transformed.createGraphics();
+            g2.drawImage(image, ICON_SIZE, ICON_SIZE, 0, 0, null);
+            g2.dispose();
+
+
+            setButtonImage((byte)7, bufferedImageToByteArray(transformed));
+        } catch (Exception e) {
+            log.error("fail", e);
+        }
+    }
+
+    //--------------------------------
 
     public void drawTest() {
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
@@ -450,39 +584,6 @@ public class Main {
             throw new RuntimeException("write failed");
         }
 
-    }
-
-    private byte[] writeJpg2(BufferedImage image) throws IOException {
-        JPEGImageWriteParam jpegParams = new JPEGImageWriteParam(null);
-        jpegParams.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-        jpegParams.setCompressionQuality(1f);
-
-        final ImageWriter writer = ImageIO.getImageWritersByFormatName("jpg").next();
-// specifies where the jpg image has to be written
-//        writer.setOutput(new FileImageOutputStream(new File(folder.toString() + "/" + filename + ".jpg")));
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        writer.setOutput(new MemoryCacheImageOutputStream(bos));
-
-// writes the file with given compression level
-// from your JPEGImageWriteParam instance
-        writer.write(null, new IIOImage(image, null, null), jpegParams);
-        writer.dispose();
-        return bos.toByteArray();
-    }
-
-    private byte[] writeJpg(BufferedImage image) throws IOException {
-        ImageWriter jpgWriter = ImageIO.getImageWritersByFormatName("jpg").next();
-        ImageWriteParam jpgWriteParam = jpgWriter.getDefaultWriteParam();
-        jpgWriteParam.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-        jpgWriteParam.setCompressionQuality(1.0f);
-
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ImageOutputStream outputStream = new MemoryCacheImageOutputStream(bos);
-        jpgWriter.setOutput(outputStream);
-        IIOImage outputImage = new IIOImage(image, null, null);
-        jpgWriter.write(null, outputImage, jpgWriteParam);
-        jpgWriter.dispose();
-        return bos.toByteArray();
     }
 
 //    public void magda15() {
@@ -537,5 +638,73 @@ public class Main {
             throw new RuntimeException("unable to read file");
         }
         return ImageIO.read(resourceAsStream);
+    }
+
+    private BufferedImage flipHorizontallyAndVertically(BufferedImage image) {
+        BufferedImage transformed = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
+        Graphics2D g2 = transformed.createGraphics();
+        g2.drawImage(image, ICON_SIZE, ICON_SIZE, -1*ICON_SIZE, -1*ICON_SIZE, null);
+        g2.dispose();
+        return transformed;
+    }
+
+    private byte[] writeImageDefaultAndGetBytes(BufferedImage image, String pathname) {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+            ImageIO.write(image, "jpg", bos);
+            ImageIO.write(image, "jpg", new File(pathname));
+            return bos.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException("write failed");
+        }
+    }
+
+    private void writeBytesToFile(byte[] bytes, String name) {
+        try (FileOutputStream fos = new FileOutputStream(name)) {
+            fos.write(bytes);
+            fos.flush();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private byte[] writeJpgWithMaxQuality2(BufferedImage image) {
+        try {
+            JPEGImageWriteParam jpegParams = new JPEGImageWriteParam(null);
+            jpegParams.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+            jpegParams.setCompressionQuality(1f);
+
+            final ImageWriter writer = ImageIO.getImageWritersByFormatName("jpg").next();
+// specifies where the jpg image has to be written
+//        writer.setOutput(new FileImageOutputStream(new File(folder.toString() + "/" + filename + ".jpg")));
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            writer.setOutput(new MemoryCacheImageOutputStream(bos));
+
+// writes the file with given compression level
+// from your JPEGImageWriteParam instance
+            writer.write(null, new IIOImage(image, null, null), jpegParams);
+            writer.dispose();
+            return bos.toByteArray();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private byte[] writeJpgWithMaxQuality(BufferedImage image) {
+        try {
+            ImageWriter jpgWriter = ImageIO.getImageWritersByFormatName("jpg").next();
+            ImageWriteParam jpgWriteParam = jpgWriter.getDefaultWriteParam();
+            jpgWriteParam.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+            jpgWriteParam.setCompressionQuality(1.0f);
+
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            ImageOutputStream outputStream = new MemoryCacheImageOutputStream(bos);
+            jpgWriter.setOutput(outputStream);
+            IIOImage outputImage = new IIOImage(image, null, null);
+            jpgWriter.write(null, outputImage, jpgWriteParam);
+            jpgWriter.dispose();
+            return bos.toByteArray();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }
