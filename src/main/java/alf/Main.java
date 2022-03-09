@@ -14,7 +14,10 @@ import javax.imageio.plugins.jpeg.JPEGImageWriteParam;
 import javax.imageio.stream.ImageOutputStream;
 import javax.imageio.stream.MemoryCacheImageOutputStream;
 import java.awt.*;
+import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
+import java.awt.image.DirectColorModel;
+import java.awt.image.IndexColorModel;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -39,6 +42,7 @@ public class Main {
     public static final int VENDOR_ID = 4057;
     public static final int PRODUCT_ID = 128;
     public static final int ICON_SIZE = 72;
+    public static final String TEST_IMAGE_JPG = "/testImage.jpg";
     private HidDevice hidDevice = null;
     private boolean terminate = false;
 
@@ -405,7 +409,7 @@ public class Main {
     }
 
     public void magda() {
-        magda2();
+        magda1();
         magda3();
         magda4();
         magda5();
@@ -433,7 +437,7 @@ public class Main {
 
 
     //finally somehow working, but why?
-    public void magda2() {
+    public void magda1() {
         try {
             BufferedImage image = readPhotoFromFile("/magda.jpg");
 
@@ -443,7 +447,76 @@ public class Main {
             g2.dispose();
 
 
-            setButtonImage((byte)1, bufferedImageToByteArray(transformed));
+            setButtonImage((byte)0, bufferedImageToByteArray(transformed));
+        } catch (Exception e) {
+            log.error("fail", e);
+        }
+    }
+
+    public void testImage() {
+        testImage1();
+        testImage2();
+        testImage3();
+        testImage4();
+    }
+
+    //finally somehow working, but why?
+    public void testImage1() {
+        try {
+            BufferedImage image = readPhotoFromFile(TEST_IMAGE_JPG);
+
+            BufferedImage transformed = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
+            Graphics2D g2 = transformed.createGraphics();
+            g2.drawImage(image, ICON_SIZE, ICON_SIZE, -1*ICON_SIZE, -1*ICON_SIZE, null);
+            g2.dispose();
+
+
+            setButtonImage((byte)10, bufferedImageToByteArray(transformed));
+        } catch (Exception e) {
+            log.error("fail", e);
+        }
+    }
+
+    //not working without flipping???
+    public void testImage2() {
+        try {
+            BufferedImage image = readPhotoFromFile(TEST_IMAGE_JPG);
+
+            BufferedImage transformed = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
+            Graphics2D g2 = transformed.createGraphics();
+            g2.drawImage(image, 0, 0, ICON_SIZE, ICON_SIZE, null);
+            g2.dispose();
+
+
+            setButtonImage((byte)11, bufferedImageToByteArray(transformed));
+        } catch (Exception e) {
+            log.error("fail", e);
+        }
+    }
+    //not working without flipping???
+    public void testImage3() {
+        try {
+            BufferedImage image = readPhotoFromFile(TEST_IMAGE_JPG);
+
+            setButtonImage((byte)12, bufferedImageToByteArray(image));
+        } catch (Exception e) {
+            log.error("fail", e);
+        }
+    }
+
+    public void testImage4() {
+        try {
+            BufferedImage image = readPhotoFromFile(TEST_IMAGE_JPG);
+
+            BufferedImage transformed = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
+            Graphics2D g2 = transformed.createGraphics();
+            g2.drawImage(image, 0, 0, ICON_SIZE, ICON_SIZE, null);
+            g2.dispose();
+
+            transformed = flipHorizontallyAndVertically(transformed);
+
+
+            setButtonImage((byte)13, bufferedImageToByteArray(transformed));
         } catch (Exception e) {
             log.error("fail", e);
         }
@@ -555,35 +628,54 @@ public class Main {
     //--------------------------------
 
     public void drawTest() {
-        try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+        drawTest1();
+        drawTest2();
 
-            BufferedImage image = new BufferedImage(ICON_SIZE, ICON_SIZE, BufferedImage.TYPE_INT_RGB);
-            Graphics2D g2 = image.createGraphics();
+    }
 
-            g2.setColor(Color.RED);
-            g2.fillRect(0, 0, ICON_SIZE, ICON_SIZE);
+    public void drawTest1() {
+        BufferedImage image = createDrawTestSampleImage();
 
-            g2.setColor(Color.BLUE);
-            g2.fillRect(15, 15, 45, 45);
+        byte[] bytes = bufferedImageToByteArray(image);
+        writeBytesToFile(bytes, "/tmp/drawTest.jpg");
 
-            g2.setColor(Color.BLACK);
-//            g2.setStroke(new BasicStroke(4));
+        setButtonImage((byte) 5, bytes);
+    }
 
-            int lastPixel = ICON_SIZE - 1;
-            g2.drawLine(0, 0, lastPixel, lastPixel);
-            g2.drawLine(lastPixel, 0, 0, lastPixel);
+    public void drawTest2() {
+        BufferedImage image = createDrawTestSampleImage();
 
-            g2.dispose();
+        BufferedImage flipped = flipHorizontallyAndVertically(image);
+        byte[] bytes = bufferedImageToByteArray(flipped);
+        writeBytesToFile(bytes, "/tmp/drawTest.jpg");
 
-//            byte[] bytes = writeJpg2(image);
-            ImageIO.write(image, "jpg", bos);
-            ImageIO.write(image, "jpg", new File("/tmp/drawTest.jpg"));
-            byte[] bytes = bos.toByteArray();
-            setButtonImage((byte)6, bytes);
-        } catch (IOException e) {
-            throw new RuntimeException("write failed");
-        }
+        setButtonImage((byte) 6, bytes);
+    }
 
+    private BufferedImage createDrawTestSampleImage() {
+        BufferedImage image = new BufferedImage(ICON_SIZE, ICON_SIZE, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2 = image.createGraphics();
+
+        g2.setClip(0,0, ICON_SIZE, ICON_SIZE);
+        g2.setColor(Color.RED);
+        g2.setBackground(Color.BLACK);
+        g2.fillRect(0, 0, ICON_SIZE, ICON_SIZE);
+
+        g2.setColor(Color.BLUE);
+//        g2.fillRect(15, 15, 45, 45);
+//        g2.fillRect(15, 15, 5, 5);
+        g2.fillRect(15, 15, 30, 30);
+        g2.drawOval(10,10,20,20);
+
+//            g2.setColor(Color.BLACK);
+////            g2.setStroke(new BasicStroke(4));
+//
+//            int lastPixel = ICON_SIZE - 1;
+//            g2.drawLine(0, 0, lastPixel, lastPixel);
+//            g2.drawLine(lastPixel, 0, 0, lastPixel);
+
+        g2.dispose();
+        return image;
     }
 
 //    public void magda15() {
