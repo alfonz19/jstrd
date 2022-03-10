@@ -652,11 +652,15 @@ public class Main {
     public void drawTest() {
         drawTest1();
         drawTest2();
+        drawTest3();
+        drawTest4();
+        drawTest5();
 
     }
 
+    //smaller square, non-flipped.
     public void drawTest1() {
-        BufferedImage image = createDrawTestSampleImage();
+        BufferedImage image = createDrawTestSampleImage(20);
 
         byte[] bytes = bufferedImageToByteArray(image);
         writeBytesToFile(bytes, "/tmp/drawTest.jpg");
@@ -664,8 +668,9 @@ public class Main {
         setButtonImage((byte) 5, bytes);
     }
 
+    //smaller square, non-flipped.
     public void drawTest2() {
-        BufferedImage image = createDrawTestSampleImage();
+        BufferedImage image = createDrawTestSampleImage(20);
 
         BufferedImage flipped = flipHorizontallyAndVertically(image);
         byte[] bytes = bufferedImageToByteArray(flipped);
@@ -674,7 +679,39 @@ public class Main {
         setButtonImage((byte) 6, bytes);
     }
 
-    private BufferedImage createDrawTestSampleImage() {
+    //bigger square, non-flipped.
+    public void drawTest3() {
+        BufferedImage image = createDrawTestSampleImage(50);
+
+        byte[] bytes = bufferedImageToByteArray(image);
+        writeBytesToFile(bytes, "/tmp/drawTest.jpg");
+
+        setButtonImage((byte) 7, bytes);
+    }
+
+    //bigger square, non-flipped.
+    public void drawTest4() {
+        BufferedImage image = createDrawTestSampleImage(50);
+
+        BufferedImage flipped = flipHorizontallyAndVertically(image);
+        byte[] bytes = bufferedImageToByteArray(flipped);
+        writeBytesToFile(bytes, "/tmp/drawTest.jpg");
+
+        setButtonImage((byte) 8, bytes);
+    }
+
+    //bigger square, non-flipped.
+    public void drawTest5() {
+        BufferedImage image = createDrawTestSampleImage(30);
+
+        BufferedImage flipped = flipHorizontallyAndVertically(image);
+        byte[] bytes = bufferedImageToByteArray(flipped);
+        writeBytesToFile(bytes, "/tmp/drawTest.jpg");
+
+        setButtonImage((byte) 9, bytes);
+    }
+
+    private BufferedImage createDrawTestSampleImage(int squareSize) {
         BufferedImage image = new BufferedImage(ICON_SIZE, ICON_SIZE, BufferedImage.TYPE_INT_RGB);
         Graphics2D g2 = image.createGraphics();
 
@@ -686,7 +723,7 @@ public class Main {
         g2.setColor(Color.BLUE);
 //        g2.fillRect(15, 15, 45, 45);
 //        g2.fillRect(15, 15, 5, 5);
-        g2.fillRect(15, 15, 30, 30);
+        g2.fillRect(15, 15, squareSize, squareSize);
         g2.drawOval(10,10,20,20);
 
 //            g2.setColor(Color.BLACK);
