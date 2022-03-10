@@ -14,10 +14,7 @@ import javax.imageio.plugins.jpeg.JPEGImageWriteParam;
 import javax.imageio.stream.ImageOutputStream;
 import javax.imageio.stream.MemoryCacheImageOutputStream;
 import java.awt.*;
-import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
-import java.awt.image.DirectColorModel;
-import java.awt.image.IndexColorModel;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -294,6 +291,13 @@ public class Main {
                 long diff = System.nanoTime() - start;
                 log.debug("writing done: Written {} bytes, writing done in {}ms",i, TimeUnit.NANOSECONDS.toMillis(diff));
 
+                //TODO MMUCHA: try to remove.
+                try {
+                    Thread.sleep(2);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+
                 byte[] tmp = new byte[sliceLength];
                 System.arraycopy(buttonImage, bytesSent, tmp, 0, sliceLength);
                 writeByteArrayToFile(tmp, "/tmp/payload"+iteration+".data");
@@ -458,6 +462,7 @@ public class Main {
         testImage2();
         testImage3();
         testImage4();
+        testImage5();
     }
 
     //finally somehow working, but why?
@@ -517,6 +522,23 @@ public class Main {
 
 
             setButtonImage((byte)13, bufferedImageToByteArray(transformed));
+        } catch (Exception e) {
+            log.error("fail", e);
+        }
+    }
+
+
+    public void testImage5() {
+        try {
+            BufferedImage image = readPhotoFromFile("/testImage_flipped.jpg");
+
+            BufferedImage transformed = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
+            Graphics2D g2 = transformed.createGraphics();
+            g2.drawImage(image, 0, 0, ICON_SIZE, ICON_SIZE, null);
+            g2.dispose();
+
+
+            setButtonImage((byte)14, bufferedImageToByteArray(transformed));
         } catch (Exception e) {
             log.error("fail", e);
         }
