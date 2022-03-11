@@ -312,11 +312,11 @@ public class Main {
                 hidCommunicationLogger.trace("writing done: Written {} bytes, writing done in {}ms",i, TimeUnit.NANOSECONDS.toMillis(diff));
 
                 //TODO MMUCHA: try to remove.
-                try {
-                    Thread.sleep(2);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
+//                try {
+//                    Thread.sleep(2);
+//                } catch (InterruptedException e) {
+//                    Thread.currentThread().interrupt();
+//                }
 
                 byte[] tmp = new byte[sliceLength];
                 System.arraycopy(buttonImage, bytesAlreadySent, tmp, 0, sliceLength);
@@ -759,42 +759,49 @@ public class Main {
         return image;
     }
 
-//    public void magda15() {
-//        try {
-//            BufferedImage image = readPhotoFromFile("/15test.jpg");
-//            log.info("source has type: {}", image.getType());
-//
-//            int buttonIndex = 0;
-//            for(int y = 0; y < 3; y++) {
-//                for(int x = 0; x < 5; x++) {
-//
-//                    int xpos = x * (INCORRECT_ICON_SIZE + 3);
-//                    int ypos = y * (INCORRECT_ICON_SIZE + 3);
-//                    log.trace("writing button {} at {}x{}", buttonIndex, xpos, ypos);
-//                    setButtonImage((byte)buttonIndex++, getImageBytesForButton(image, xpos, ypos));
-//                    log.trace("---");
-////                    return;
-////                    System.out.println("X:"+x*(75+3));
-//                }
-////                System.out.println("Y:"+y*(75+3));
-//            }
-//
-//        } catch (Exception e) {
-//            log.error("fail", e);
-//        }
-//    }
-//
-//    private byte[] getImageBytesForButton(BufferedImage sourceImage, int x, int y) {
-//        int buttonSize = INCORRECT_ICON_SIZE;
-//        BufferedImage buttonImage = new BufferedImage(buttonSize, buttonSize, BufferedImage.TYPE_INT_RGB);
-//        Graphics2D g2 = buttonImage.createGraphics();
-//        g2.drawImage(sourceImage, 0, 0, buttonSize, buttonSize, x, y, buttonSize, buttonSize,Color.BLACK, (img, infoflags, xx, yy, width, height) -> false);
-//        g2.dispose();
-//
-//        log.info("small button has image type {}", buttonImage.getType());
-//
-//        return bufferedImageToByteArray(buttonImage);
-//    }
+    public void magda15() {
+        try {
+            BufferedImage image = readPhotoFromFile("/15test.jpg");
+            log.info("source has type: {}", image.getType());
+
+            float separatorSize = 14.40f;
+
+            int buttonIndex = 0;
+            for(int y = 0; y < 3; y++) {
+                for(int x = 0; x < 5; x++) {
+
+                    int xpos = x * Double.valueOf(Math.floor(ICON_SIZE + separatorSize)).intValue();
+                    int ypos = y * Double.valueOf(Math.floor(ICON_SIZE + separatorSize)).intValue();
+                    log.debug("writing button {} at {}x{}", buttonIndex, xpos, ypos);
+                    setButtonImage((byte)buttonIndex++, getImageBytesForButton(image, xpos, ypos));
+                    log.trace("---");
+
+                }
+            }
+
+        } catch (Exception e) {
+            log.error("fail", e);
+        }
+    }
+
+    private byte[] getImageBytesForButton(BufferedImage sourceImage, int x, int y) {
+        BufferedImage buttonImage = new BufferedImage(ICON_SIZE, ICON_SIZE, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2 = buttonImage.createGraphics();
+        g2.drawImage(sourceImage,
+                0,
+                0,
+                ICON_SIZE,
+                ICON_SIZE,
+                x,
+                y,
+                x+ICON_SIZE,
+                y+ICON_SIZE,
+                Color.BLACK,
+                (img, infoflags, xx, yy, width, height) -> false);
+        g2.dispose();
+
+        return writeJpgWithMaxQuality(flipHorizontallyAndVertically(buttonImage));
+    }
 
     private byte[] bufferedImageToByteArray(BufferedImage buttonImage) {
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
