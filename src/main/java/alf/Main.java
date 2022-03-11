@@ -1,5 +1,7 @@
 package alf;
 
+import com.mortennobel.imagescaling.ResampleFilters;
+import com.mortennobel.imagescaling.ResampleOp;
 import purejavahidapi.DeviceRemovalListener;
 import purejavahidapi.HidDevice;
 import purejavahidapi.HidDeviceInfo;
@@ -15,6 +17,7 @@ import javax.imageio.stream.ImageOutputStream;
 import javax.imageio.stream.MemoryCacheImageOutputStream;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -22,8 +25,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.time.Duration;
+import java.time.temporal.Temporal;
+import java.time.temporal.TemporalUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
@@ -759,12 +767,38 @@ public class Main {
         return image;
     }
 
-    public void magda15() {
+    public void magda15A() {
+        String srcImage = "/15test.jpg";
+        float separatorSize = 14.40f;
+
+        BufferedImage image = readPhotoFromFile(srcImage);
+        magda15(separatorSize, image);
+    }
+
+    public void magda15B() {
+        log.info("Please wait several seconds, poorImageIO jpeg reading performance");
+        float separatorSize = 20f;
+
+        long start = System.nanoTime();
+        BufferedImage image = readPhotoFromFile(new File("/home/mmucha/projects/streamdeck/streamdeck/src/main/resources/fullImage.jpg"));
+
+        long readingTime = System.nanoTime();
+        BufferedImage scaledDown = scaleDownBigImageFor15(image, separatorSize);
+        long scalingTimeTime = System.nanoTime();
+        byte[] bytes = writeJpgWithMaxQuality(scaledDown);
+        writeBytesToFile(bytes, "/tmp/scaledDown.jpg");
+        magda15(separatorSize, scaledDown);
+
+        log.info("Reading time: {}ms", TimeUnit.NANOSECONDS.toMillis(readingTime-start));
+        log.info("Reading time: {}ms", TimeUnit.NANOSECONDS.toMillis(scalingTimeTime-readingTime));
+
+        log.info("Uff, finally done!");
+    }
+
+    private void magda15(float separatorSize, BufferedImage image) {
         try {
-            BufferedImage image = readPhotoFromFile("/15test.jpg");
             log.info("source has type: {}", image.getType());
 
-            float separatorSize = 14.40f;
 
             int buttonIndex = 0;
             for(int y = 0; y < 3; y++) {
@@ -812,12 +846,25 @@ public class Main {
         }
     }
 
-    private BufferedImage readPhotoFromFile(String name) throws IOException {
-        InputStream resourceAsStream = Main.class.getResourceAsStream(name);
-        if (resourceAsStream == null) {
-            throw new RuntimeException("unable to read file");
+    private BufferedImage readPhotoFromFile(String name)  {
+        try {
+            InputStream resourceAsStream = Main.class.getResourceAsStream(name);
+            if (resourceAsStream == null) {
+                throw new RuntimeException("unable to read file");
+            }
+            return ImageIO.read(resourceAsStream);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        return ImageIO.read(resourceAsStream);
+    }
+
+    private BufferedImage readPhotoFromFile(File file)  {
+        ImageIO.setUseCache(false);
+        try {
+            return ImageIO.read(file);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private BufferedImage flipHorizontallyAndVertically(BufferedImage image) {
@@ -886,5 +933,39 @@ public class Main {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private BufferedImage scaleDownBigImageFor15(BufferedImage image, float separator) {
+        int dx1 = 370;
+        int dy1 = 0;
+        int dx2 = 3821;
+        int dy2 = 2112;
+
+        int origWidth = image.getWidth();
+        int origHeight = image.getHeight();
+        double origRatio = origWidth / (double) origHeight;
+
+        ////TODO MMUCHA: insufficient, expects that it can be fixed like this. Better cropping might be needed.
+        int fixed_dy2 = Double.valueOf(Math.floor(((dx2 - dx1) / origRatio))).intValue() + dy1;
+        dy2 = fixed_dy2;
+
+        int targetWidth = Double.valueOf(Math.floor((ICON_SIZE+separator)*4 + ICON_SIZE)).intValue();
+        int targetHeight = Double.valueOf(Math.floor((ICON_SIZE+separator)*2 + ICON_SIZE)).intValue();
+
+
+        //crop original
+        BufferedImage subimage = image.getSubimage(dx1, dy1, dx2 - dx1, dy2-dx1);
+
+
+        ResampleOp resizeOp = new ResampleOp(targetWidth, targetHeight);
+        resizeOp.setFilter(ResampleFilters.getLanczos3Filter());
+        return resizeOp.filter(subimage, null);
+    }
+
+    /**
+     * This is another bit of a hack and might also change
+     */
+    public static int[] loadPixelsCrazyFast( BufferedImage img ){
+        return ((DataBufferInt) img.getRaster().getDataBuffer()).getData();
     }
 }
