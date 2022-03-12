@@ -2,6 +2,7 @@ package alf;
 
 import com.mortennobel.imagescaling.ResampleFilters;
 import com.mortennobel.imagescaling.ResampleOp;
+import ij.ImagePlus;
 import purejavahidapi.DeviceRemovalListener;
 import purejavahidapi.HidDevice;
 import purejavahidapi.HidDeviceInfo;
@@ -18,6 +19,7 @@ import javax.imageio.stream.MemoryCacheImageOutputStream;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -25,19 +27,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.time.Duration;
-import java.time.temporal.Temporal;
-import java.time.temporal.TemporalUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -867,6 +867,60 @@ public class Main {
         }
     }
 
+    public void readPhotoFromFile2()  {
+//        FileInfo fi = new FileInfo();
+//
+//        Object o = new ImageReader(fi).readPixels(
+//                );
+        long start = System.nanoTime();
+        ImagePlus imagePlus =
+                new ImagePlus("file:///home/mmucha/projects/streamdeck/streamdeck/src/main/resources/fullImage.jpg");
+
+        BufferedImage bufferedImage = imagePlus.getBufferedImage();
+        long end = System.nanoTime();
+        System.out.println("duration: "+(TimeUnit.NANOSECONDS.toMillis(end-start)));
+        writeBytesToFile(writeJpgWithMaxQuality(bufferedImage), "/tmp/test");
+
+        //---------------
+
+        start = System.nanoTime();
+        ImageIO.setUseCache(false);
+        try {
+            ImageIO.read(new URL("file:///home/mmucha/projects/streamdeck/streamdeck/src/main/resources/fullImage.jpg"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        end = System.nanoTime();
+        System.out.println("duration: "+(TimeUnit.NANOSECONDS.toMillis(end-start)));
+
+        //------------
+        start = System.nanoTime();
+        ImageIO.setUseCache(false);
+        try {
+            InputStream resourceAsStream = Main.class.getResourceAsStream("/fullImage.jpg");
+            ImageIO.read(resourceAsStream);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        end = System.nanoTime();
+        System.out.println("duration: "+(TimeUnit.NANOSECONDS.toMillis(end-start)));
+
+        //------------
+        start = System.nanoTime();
+        ImageIO.setUseCache(false);
+        try {
+            InputStream resourceAsStream = Main.class.getResourceAsStream("/fullImage.jpg");
+            byte[] targetArray = org.apache.commons.io.IOUtils.toByteArray(resourceAsStream);
+            ByteArrayInputStream str = new ByteArrayInputStream(targetArray);
+            ImageIO.read(str);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        end = System.nanoTime();
+        System.out.println("duration: "+(TimeUnit.NANOSECONDS.toMillis(end-start)));
+
+    }
+
     private BufferedImage flipHorizontallyAndVertically(BufferedImage image) {
         BufferedImage transformed = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
         Graphics2D g2 = transformed.createGraphics();
@@ -967,5 +1021,16 @@ public class Main {
      */
     public static int[] loadPixelsCrazyFast( BufferedImage img ){
         return ((DataBufferInt) img.getRaster().getDataBuffer()).getData();
+    }
+
+    public void hi() {
+        byte[] whiteImage = createColoredIcon(Color.LIGHT_GRAY);
+        byte[] blackImage = createColoredIcon(Color.BLACK);
+        IntStream.range(0, 15).forEach(e-> {
+            boolean white = e == 6 || e % 5 == 0 || e % 5 == 2 || e % 5 == 4;
+            setButtonImage((byte)e, white ? whiteImage : blackImage);
+        });
+
+
     }
 }
