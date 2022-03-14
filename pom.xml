@@ -12,11 +12,12 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.target>1.8</maven.compiler.target>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <slf4j.version>1.7.29</slf4j.version>
-    <logback.version>1.2.3</logback.version>
+<!--    <maven.compiler.target>1.8</maven.compiler.target>-->
+<!--    <maven.compiler.source>1.8</maven.compiler.source>-->
+    <slf4j.version>1.7.36</slf4j.version>
+    <logback.version>1.2.11</logback.version>
     <logstash-logback-encoder.version>6.6</logstash-logback-encoder.version>
+    <java.version>11</java.version>
 
   </properties>
 
@@ -77,6 +78,13 @@
       <version>2.11.0</version>
     </dependency>
 
+    <dependency>
+      <groupId>io.projectreactor</groupId>
+      <artifactId>reactor-core</artifactId>
+      <version>3.4.15</version>
+      <scope>compile</scope>
+    </dependency>
+
 
   </dependencies>
 
@@ -86,10 +94,10 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.8.1</version>
+          <version>3.10.1</version>
           <configuration>
             <parameters>true</parameters>
-<!--            <release>${java.version}</release>-->
+            <release>${java.version}</release>
             <compilerArgs>
               <arg>-Xlint:all</arg>
               <arg>-Xmaxwarns</arg>
