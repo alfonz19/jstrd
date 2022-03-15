@@ -1,9 +1,12 @@
 package strd.lib;
 
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.FluxSink;
 import strd.lib.hid.HidLibrary;
 
 import java.util.List;
 import java.util.ServiceLoader;
+import java.util.function.Consumer;
 import java.util.stream.StreamSupport;
 
 import org.slf4j.Logger;
@@ -57,5 +60,13 @@ public class LibMain {
 
     private Runnable errorMessage(String message) {
         return () -> System.err.println(message);
+    }
+
+
+
+    public Consumer<List<Integer>> consumer;
+
+    public Flux<Integer> createNumberSequence() {
+        return Flux.create(sink -> LibMain.this.consumer = items -> items.forEach(sink::next));
     }
 }

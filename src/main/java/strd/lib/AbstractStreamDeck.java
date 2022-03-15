@@ -1,9 +1,14 @@
 package strd.lib;
 
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.FluxSink;
+import reactor.core.publisher.SynchronousSink;
+import reactor.util.function.Tuple2;
 import strd.lib.hid.HidLibrary;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public abstract class AbstractStreamDeck implements StreamDeck {
     private final HidLibrary.StreamDeckInfo streamDeckInfo;
@@ -89,23 +94,36 @@ public abstract class AbstractStreamDeck implements StreamDeck {
         streamDeckHandle.close();
     }
 
+
+
+    
     private void registerInputReportListener() {
-        streamDeckHandle.setInputReportListener((reportData, reportLength) -> {
-            int maxIndex = Math.min(keyCount, reportLength);
-            for(int buttonIndex = 0; buttonIndex < maxIndex; buttonIndex++) {
-                boolean oldState = buttonStates[buttonIndex];
-                boolean newState = readValueForIthButton(reportData, buttonIndex) != 0;
+        
+//        Consumer<FluxSink<Tuple2<byte[], Integer>>> a = new Consumer<>() {
+//
+//            @Override
+//            public void accept(FluxSink<Tuple2<byte[], Integer>> tuple2FluxSink) {
+//                tuple2FluxSink.next()
+//            }
+//        };
 
-                if (newState != oldState) {
-                    for (ButtonStateListener buttonsStateListener : buttonsStateListeners) {
-                        buttonsStateListener.buttonStateUpdated(buttonIndex, newState);
-                    }
-                }
-
-                buttonStates[buttonIndex] = newState;
-            }
-            buttonsStateListeners.forEach(e->e.buttonsStateUpdated(buttonStates));
-        });
+//        Flux<Tuple2<byte[], Integer>> tuple2Flux = Flux.create(a);
+//        streamDeckHandle.setInputReportListener((reportData, reportLength) -> {
+//            int maxIndex = Math.min(keyCount, reportLength);
+//            for(int buttonIndex = 0; buttonIndex < maxIndex; buttonIndex++) {
+//                boolean oldState = buttonStates[buttonIndex];
+//                boolean newState = readValueForIthButton(reportData, buttonIndex) != 0;
+//
+//                if (newState != oldState) {
+//                    for (ButtonStateListener buttonsStateListener : buttonsStateListeners) {
+//                        buttonsStateListener.buttonStateUpdated(buttonIndex, newState);
+//                    }
+//                }
+//
+//                buttonStates[buttonIndex] = newState;
+//            }
+//            buttonsStateListeners.forEach(e->e.buttonsStateUpdated(buttonStates));
+//        });
     }
 
     //TODO MMUCHA: maybe this is used when not all bytes are sent in one 'packet'?
