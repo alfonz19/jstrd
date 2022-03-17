@@ -59,7 +59,7 @@ public abstract class AbstractStreamDeck implements StreamDeck {
 
     @Override
     public void setButtonImage(int buttonIndex, byte[] buttonImage) {
-        throw new UnsupportedOperationException("Not implemented yet"); //TODO MMUCHA: implement
+        streamDeckHandle.setButtonImage(buttonIndex, buttonImage);
     }
 
     @Override
