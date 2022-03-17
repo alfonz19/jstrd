@@ -17,6 +17,5 @@ public class StreamDeckFactory {
 
     public StreamDeck openConnection(HidLibrary.StreamDeckInfo streamDeckInfo) {
         return streamDeckInfo.getStreamDeckVariant().create(streamDeckInfo, hidLibrary.openDevice(streamDeckInfo));
-//        return new StreamDeck(streamDeckInfo, hidLibrary.openDevice(streamDeckInfo));
     }
 }

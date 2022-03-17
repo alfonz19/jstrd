@@ -1,5 +1,6 @@
 package strd.lib.hid;
 
+import purejavahidapi.DeviceRemovalListener;
 import purejavahidapi.HidDevice;
 import purejavahidapi.HidDeviceInfo;
 import strd.lib.StdrException;
@@ -36,10 +37,18 @@ public class PureJavaHidApi implements HidLibrary {
     @Override
     public StreamDeckHandle openDevice(StreamDeckInfo streamDeckInfo) {
         try {
-            return new PureJavaHidApiStreamDeckHandle(purejavahidapi.PureJavaHidApi.openDevice((HidDeviceInfo) streamDeckInfo.getInternalRepresentation()));
+            HidDeviceInfo internalRepresentation = (HidDeviceInfo) streamDeckInfo.getInternalRepresentation();
+            HidDevice openedDevice = purejavahidapi.PureJavaHidApi.openDevice(internalRepresentation);
+            PureJavaHidApiStreamDeckHandle result = new PureJavaHidApiStreamDeckHandle(openedDevice);
+            result.setDeviceRemovalListener(() -> {/*do nothing*/});
+            return result;
         } catch (IOException e) {
             throw new StdrException(e);
         }
+    }
+
+    private void onDeviceRemoval(PureJavaHidApiStreamDeckHandle result) {
+        result.close();
     }
 
     private static class PureJavaHidApiStreamDeckHandle implements StreamDeckHandle {
@@ -64,11 +73,27 @@ public class PureJavaHidApi implements HidLibrary {
                     inputReportListener.onInputReport(reportData, reportLength));
         }
 
+        @Override
+        public void setDeviceRemovalListener(DeviceRemovalListener deviceRemovalListener) {
+            assertOpenedDevice();
+            hidDevice.setDeviceRemovalListener(source -> {
+                //regardless if user want's or not, this device was removed, so we call close to have up-to-date info, that
+                //this device is closed.
+                close();
+                deviceRemovalListener.onDeviceRemoved();
+            });
+        }
+
         private void assertOpenedDevice() {
-            if (hidDevice == null) {
+            if (isClosed()) {
                 throw new StdrException("Device already closed");
             }
 
+        }
+
+        @Override
+        public boolean isClosed() {
+            return hidDevice == null;
         }
     }
 }

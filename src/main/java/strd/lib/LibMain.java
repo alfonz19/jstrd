@@ -1,7 +1,6 @@
 package strd.lib;
 
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.FluxSink;
 import strd.lib.hid.HidLibrary;
 
 import java.util.List;
@@ -46,7 +45,9 @@ public class LibMain {
         try (StreamDeck streamDeck = factory.openConnection(streamDeckInfo)) {
             streamDeck.addButtonsStateUpdatedListener(new StreamDeck.ButtonStateListener.Adapter() {
                 @Override
-                public void buttonStateUpdated(int buttonIndex, boolean buttonState) {
+                public void buttonStateUpdated(HidLibrary.StreamDeckInfo streamDeckInfo,
+                                               int buttonIndex,
+                                               boolean buttonState) {
                     log.info("Button {} {}", buttonIndex, buttonState ? "pressed" : "released");
                     if (buttonIndex == streamDeck.getKeyCount() - 1 && buttonState) {
                         waitUntilNotTerminated.terminate();

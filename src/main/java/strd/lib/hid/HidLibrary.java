@@ -10,12 +10,18 @@ public interface HidLibrary {
     StreamDeckHandle openDevice(StreamDeckInfo streamDeckInfo);
 
     interface StreamDeckHandle {
+        boolean isClosed();
         void close();
 
         void setInputReportListener(InputReportListener buttonListener);
+        void setDeviceRemovalListener(DeviceRemovalListener deviceRemovalListener);
 
         interface InputReportListener {
             void onInputReport(byte[] reportData, int reportLength);
+        }
+
+        interface DeviceRemovalListener {
+            void onDeviceRemoved();
         }
     }
 

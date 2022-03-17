@@ -20,6 +20,8 @@ public abstract class AbstractStreamDeck implements StreamDeck {
 //    private final int columnCount;
 
     private final List<ButtonStateListener> buttonsStateListeners = new ArrayList<>();
+    //TODO MMUCHA: externalize
+    private int lastSetScreenBrightness = 10;
 
     public AbstractStreamDeck(HidLibrary.StreamDeckInfo streamDeckInfo,
                               HidLibrary.StreamDeckHandle streamDeckHandle,
@@ -51,21 +53,26 @@ public abstract class AbstractStreamDeck implements StreamDeck {
     }
 
     @Override
-    public void addDeviceRemovalListener() {
+    public void setDeviceRemovalListener(DeviceRemovalListener deviceRemovalListener) {
+        streamDeckHandle.setDeviceRemovalListener(() -> deviceRemovalListener.deviceRemoved(streamDeckInfo));
     }
 
     @Override
     public void setButtonImage(int buttonIndex, byte[] buttonImage) {
-
+        throw new UnsupportedOperationException("Not implemented yet"); //TODO MMUCHA: implement
     }
 
     @Override
     public void resetDevice() {
+        throw new UnsupportedOperationException("Not implemented yet"); //TODO MMUCHA: implement
 
     }
 
     @Override
     public void setBrightness(int percent) {
+        //TODO MMUCHA: try to replace with fetching actual screen brightness in screenOff.
+        lastSetScreenBrightness = percent;
+        throw new UnsupportedOperationException("Not implemented yet"); //TODO MMUCHA: implement
 
     }
 
@@ -77,52 +84,27 @@ public abstract class AbstractStreamDeck implements StreamDeck {
 
     @Override
     public void getSerialNumber() {
+        throw new UnsupportedOperationException("Not implemented yet"); //TODO MMUCHA: implement
+
     }
 
+    @Override
+    public final void screenOn() {
+        setBrightness(lastSetScreenBrightness);
+    }
 
-    //TODO MMUCHA: implement.
-//    public final void screenOn() {
-//
-//    }
-
-    //throttling!
+    @Override
+    public boolean isClosed() {
+        return streamDeckHandle.isClosed();
+    }
 
     @Override
     public void close() {
         streamDeckHandle.close();
     }
 
-
-
-    
     private void registerInputReportListener() {
         streamDeckHandle.setInputReportListener(new ProcessInputReportListenerInSeparateThread());
-
-//        Consumer<FluxSink<Tuple2<byte[], Integer>>> a = new Consumer<>() {
-//
-//            @Override
-//            public void accept(FluxSink<Tuple2<byte[], Integer>> tuple2FluxSink) {
-//                tuple2FluxSink.next()
-//            }
-//        };
-
-//        Flux<Tuple2<byte[], Integer>> tuple2Flux = Flux.create(a);
-//        streamDeckHandle.setInputReportListener((reportData, reportLength) -> {
-//            int maxIndex = Math.min(keyCount, reportLength);
-//            for(int buttonIndex = 0; buttonIndex < maxIndex; buttonIndex++) {
-//                boolean oldState = buttonStates[buttonIndex];
-//                boolean newState = readValueForIthButton(reportData, buttonIndex) != 0;
-//
-//                if (newState != oldState) {
-//                    for (ButtonStateListener buttonsStateListener : buttonsStateListeners) {
-//                        buttonsStateListener.buttonStateUpdated(buttonIndex, newState);
-//                    }
-//                }
-//
-//                buttonStates[buttonIndex] = newState;
-//            }
-//            buttonsStateListeners.forEach(e->e.buttonsStateUpdated(buttonStates));
-//        });
     }
 
     //TODO MMUCHA: maybe this is used when not all bytes are sent in one 'packet'?
@@ -134,6 +116,11 @@ public abstract class AbstractStreamDeck implements StreamDeck {
     @Override
     public int getKeyCount() {
         return keyCount;
+    }
+
+    @Override
+    public HidLibrary.StreamDeckInfo getStreamDeckInfo() {
+        return streamDeckInfo;
     }
 
     /**
@@ -176,13 +163,13 @@ public abstract class AbstractStreamDeck implements StreamDeck {
 
                 if (newState != oldState) {
                     for (ButtonStateListener buttonsStateListener : buttonsStateListeners) {
-                        buttonsStateListener.buttonStateUpdated(buttonIndex, newState);
+                        buttonsStateListener.buttonStateUpdated(streamDeckInfo, buttonIndex, newState);
                     }
                 }
 
                 buttonStates[buttonIndex] = newState;
             }
-            buttonsStateListeners.forEach(e->e.buttonsStateUpdated(buttonStates));
+            buttonsStateListeners.forEach(e->e.buttonsStateUpdated(streamDeckInfo, buttonStates));
         }
     }
 }

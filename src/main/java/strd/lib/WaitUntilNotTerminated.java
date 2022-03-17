@@ -23,6 +23,7 @@ public class WaitUntilNotTerminated {
 
         while (!terminated) {
             try {
+                //noinspection BusyWait
                 Thread.sleep(millis);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();

@@ -1,6 +1,10 @@
 package strd.lib;
 
+import strd.lib.hid.HidLibrary;
+
 public interface StreamDeck extends AutoCloseable {
+
+    HidLibrary.StreamDeckInfo getStreamDeckInfo();
 
     void addButtonsStateUpdatedListener(ButtonStateListener buttonsStateUpdatedListener);
 
@@ -8,7 +12,7 @@ public interface StreamDeck extends AutoCloseable {
 
     void removeAllButtonsStateUpdatedListeners();
 
-    void addDeviceRemovalListener() ;
+    void setDeviceRemovalListener(DeviceRemovalListener deviceRemovalListener);
 
     void setButtonImage(int buttonIndex, byte[] buttonImage);
 
@@ -16,38 +20,42 @@ public interface StreamDeck extends AutoCloseable {
 
     void setBrightness(int percent);
 
+    void screenOn();
+
     void screenOff();
 
     void getSerialNumber();
 
 
 
-    //TODO MMUCHA: implement.
-//    public final void screenOn() {
-//
-//    }
 
-    //throttling!
-
+    boolean isClosed();
     void close();
 
     int getKeyCount();
 
+
     interface ButtonStateListener {
-        void buttonsStateUpdated(boolean[] buttonStates);
-        void buttonStateUpdated(int buttonIndex, boolean buttonState);
+        void buttonsStateUpdated(HidLibrary.StreamDeckInfo streamDeckInfo, boolean[] buttonStates);
+        void buttonStateUpdated(HidLibrary.StreamDeckInfo streamDeckInfo, int buttonIndex, boolean buttonState);
 
         class Adapter implements ButtonStateListener {
 
             @Override
-            public void buttonsStateUpdated(boolean[] buttonStates) {
+            public void buttonsStateUpdated(HidLibrary.StreamDeckInfo streamDeckInfo, boolean[] buttonStates) {
                 //no op
             }
 
             @Override
-            public void buttonStateUpdated(int buttonIndex, boolean buttonState) {
+            public void buttonStateUpdated(HidLibrary.StreamDeckInfo streamDeckInfo,
+                                           int buttonIndex,
+                                           boolean buttonState) {
                 //no op
             }
         }
+    }
+
+    interface DeviceRemovalListener {
+        void deviceRemoved(HidLibrary.StreamDeckInfo streamDeckInfo);
     }
 }
