@@ -58,6 +58,16 @@ public class LibMain {
                     log.info("Button {} {}", buttonIndex, buttonState ? "pressed" : "released");
                     if (buttonIndex == streamDeck.getKeyCount() - 1 && buttonState) {
                         waitUntilNotTerminated.terminate();
+                    } else if (buttonIndex == streamDeck.getKeyCount() - 2 && buttonState) {
+                        streamDeck.resetDevice();
+                    } else if (buttonIndex >= 5 && buttonIndex <= 9) {
+                        streamDeck.setBrightness((buttonIndex - 4)*10);
+                    } else if (buttonIndex == 10) {
+                        streamDeck.screenOff();
+                    } else if (buttonIndex == 11) {
+                        streamDeck.screenOn();
+                    } else if (buttonIndex == 12) {
+                        streamDeck.setBrightness(100);
                     }
                 }
             });

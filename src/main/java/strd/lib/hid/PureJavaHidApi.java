@@ -58,8 +58,10 @@ public class PureJavaHidApi implements HidLibrary {
         result.close();
     }
 
+    //TODO MMUCHA: extract superclass. Creation of requests can be generalized regardless of imp. etc.
     private static class PureJavaHidApiStreamDeckHandle implements StreamDeckHandle {
 
+        private static final byte[] SET_BRIGHTNESS_REQUEST = createSetBrightnessRequest();
         private HidDevice hidDevice;
 
         public PureJavaHidApiStreamDeckHandle(HidDevice hidDevice) {
@@ -107,9 +109,52 @@ public class PureJavaHidApi implements HidLibrary {
             return str.substring(0, i1).trim();
         }
 
+        @Override
+        public void setButtonImage(int buttonIndex, byte[] buttonImage) {
+
+        }
+
+        @Override
+        public void resetDevice() {
+            byte[] resetPayload = createResetDeviceRequest();
+
+            int i = this.hidDevice.setFeatureReport((byte) 0x03, resetPayload, resetPayload.length);
+            if (i == -1) {
+                log.warn("Resetting device failed");
+            } else {
+                log.debug("Resetting device returned: {}", i);
+            }
+        }
+
+        private byte[] createResetDeviceRequest() {
+            byte[] resetPayload = new byte[32];
+            resetPayload[0] = 0x02;
+            return resetPayload;
+        }
+
+        @Override
+        public void setBrightness(int percent) {
+            //fix incorrect input.
+            percent = (byte)Math.min(Math.max(percent, 0), 100);
+
+            SET_BRIGHTNESS_REQUEST[1] = (byte)percent;
+            this.hidDevice.setFeatureReport((byte) 0x03, SET_BRIGHTNESS_REQUEST, SET_BRIGHTNESS_REQUEST.length);
+
+        }
+
         private static byte[] createGetSerialNumberRequest() {
             byte[] payload = new byte[32];
             payload[0] = 0x06;
+            return payload;
+        }
+
+        private static byte[] createSetBrightnessRequest() {
+            byte[] payload = new byte[32];
+            payload[0] = 0x08;
+
+            //default value, to be updated. Specifying it here just to have valid request to begin with
+            payload[1] = (byte)50;
+
             return payload;
         }
 

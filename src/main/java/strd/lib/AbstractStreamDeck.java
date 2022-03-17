@@ -64,16 +64,15 @@ public abstract class AbstractStreamDeck implements StreamDeck {
 
     @Override
     public void resetDevice() {
-        throw new UnsupportedOperationException("Not implemented yet"); //TODO MMUCHA: implement
+        streamDeckHandle.resetDevice();
 
     }
 
     @Override
     public void setBrightness(int percent) {
         //TODO MMUCHA: try to replace with fetching actual screen brightness in screenOff.
-        lastSetScreenBrightness = percent;
-        throw new UnsupportedOperationException("Not implemented yet"); //TODO MMUCHA: implement
-
+        lastSetScreenBrightness = percent != 0 ? percent : lastSetScreenBrightness;
+        streamDeckHandle.setBrightness(percent);
     }
 
     @Override

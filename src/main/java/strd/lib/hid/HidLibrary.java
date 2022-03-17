@@ -23,6 +23,10 @@ public interface HidLibrary {
          */
         String getSerialNumber();
 
+        void setButtonImage(int buttonIndex, byte[] buttonImage);
+        void resetDevice();
+        void setBrightness(int percent);
+
         interface InputReportListener {
             void onInputReport(byte[] reportData, int reportLength);
         }
