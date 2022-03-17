@@ -16,6 +16,13 @@ public interface HidLibrary {
         void setInputReportListener(InputReportListener buttonListener);
         void setDeviceRemovalListener(DeviceRemovalListener deviceRemovalListener);
 
+        /**
+         * Issue request to device to fetch its serial number. Probably pointless, as
+         * {@link HidLibrary.StreamDeckInfo#getSerialNumberString} seems to return the same string.
+         * @return serial number of device
+         */
+        String getSerialNumber();
+
         interface InputReportListener {
             void onInputReport(byte[] reportData, int reportLength);
         }

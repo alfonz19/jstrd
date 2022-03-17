@@ -83,8 +83,8 @@ public abstract class AbstractStreamDeck implements StreamDeck {
     }
 
     @Override
-    public void getSerialNumber() {
-        throw new UnsupportedOperationException("Not implemented yet"); //TODO MMUCHA: implement
+    public String getSerialNumber() {
+        return streamDeckHandle.getSerialNumber();
 
     }
 

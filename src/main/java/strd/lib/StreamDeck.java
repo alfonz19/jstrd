@@ -24,7 +24,12 @@ public interface StreamDeck extends AutoCloseable {
 
     void screenOff();
 
-    void getSerialNumber();
+    /**
+     * Issue request to device to fetch its serial number. Probably pointless, as
+     * {@link HidLibrary.StreamDeckInfo#getSerialNumberString} seems to return the same string.
+     * @return serial number of device
+     */
+    String getSerialNumber();
 
 
 

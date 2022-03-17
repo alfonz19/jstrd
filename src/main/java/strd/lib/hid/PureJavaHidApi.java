@@ -1,17 +1,24 @@
 package strd.lib.hid;
 
-import purejavahidapi.DeviceRemovalListener;
 import purejavahidapi.HidDevice;
 import purejavahidapi.HidDeviceInfo;
 import strd.lib.StdrException;
 import strd.lib.StreamDeckVariant;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class PureJavaHidApi implements HidLibrary {
+
+    private static final Logger log = LoggerFactory.getLogger(PureJavaHidApi.class);
+
     @Override
     public List<StreamDeckInfo> findStreamDeckDevices() {
         return purejavahidapi.PureJavaHidApi.enumerateDevices()
@@ -84,16 +91,38 @@ public class PureJavaHidApi implements HidLibrary {
             });
         }
 
+        @Override
+        public String getSerialNumber() {
+            assertOpenedDevice();
+            byte[] getSerialNumberRequest = createGetSerialNumberRequest();
+            int i = this.hidDevice.getFeatureReport(getSerialNumberRequest, getSerialNumberRequest.length);
+            log.trace("Request to get serial version returned: {}", i);
+
+            int prefixToSkip = 2;
+            String str = new String(getSerialNumberRequest,
+                    prefixToSkip,
+                    getSerialNumberRequest.length - prefixToSkip,
+                    StandardCharsets.UTF_8);
+            int i1 = str.indexOf('\0');
+            return str.substring(0, i1).trim();
+        }
+
+        private static byte[] createGetSerialNumberRequest() {
+            byte[] payload = new byte[32];
+            payload[0] = 0x06;
+            return payload;
+        }
+
         private void assertOpenedDevice() {
             if (isClosed()) {
                 throw new StdrException("Device already closed");
             }
-
         }
 
         @Override
         public boolean isClosed() {
             return hidDevice == null;
         }
+
     }
 }

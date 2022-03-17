@@ -6,6 +6,7 @@ import strd.lib.hid.HidLibrary;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.slf4j.Logger;
@@ -29,14 +30,20 @@ public class LibMain {
         StreamDeckFactory factory = new StreamDeckFactory(hidLibrary);
         List<HidLibrary.StreamDeckInfo> streamDeckDevices = factory.findStreamDeckDevices();
 
-        streamDeckDevices.forEach(System.out::println);
+
+        String foundStreamDeckDevicesString = streamDeckDevices.stream()
+                .map(HidLibrary.StreamDeckInfo::toString)
+                .collect(Collectors.joining("\n",
+                        "-----All found streamdeck devices-----\n",
+                        "--------------------------------------\n"));
+        System.out.println(foundStreamDeckDevicesString);
 
 
         streamDeckDevices.stream()
                 .filter(e -> e.getSerialNumberString().equals("DL49K1A69132"))
                 .findFirst()
                 .ifPresentOrElse(streamDeckInfo -> testRunMyStreamDeck(factory, streamDeckInfo),
-                        errorMessage("Unable to find selected steamdeck."));
+                        errorMessage("Unable to find selected streamdeck."));
     }
 
     private void testRunMyStreamDeck(StreamDeckFactory factory, HidLibrary.StreamDeckInfo streamDeckInfo) {
@@ -54,6 +61,9 @@ public class LibMain {
                     }
                 }
             });
+
+            System.out.println("StreamDeck serial version(A): "+streamDeck.getStreamDeckInfo().getSerialNumberString());
+            System.out.println("StreamDeck serial version(B): "+streamDeck.getSerialNumber());
 
             waitUntilNotTerminated.start();
         }
