@@ -2,23 +2,23 @@ package strd.lib;
 
 public interface StreamDeck extends AutoCloseable {
 
-    public void addButtonsStateUpdatedListener(ButtonStateListener buttonsStateUpdatedListener);
+    void addButtonsStateUpdatedListener(ButtonStateListener buttonsStateUpdatedListener);
 
     void removeButtonsStateUpdatedListener(ButtonStateListener buttonsStateUpdatedListener);
 
     void removeAllButtonsStateUpdatedListeners();
 
-    public void addDeviceRemovalListener() ;
+    void addDeviceRemovalListener() ;
 
-    public void setButtonImage(int buttonIndex, byte[] buttonImage);
+    void setButtonImage(int buttonIndex, byte[] buttonImage);
 
-    public void resetDevice();
+    void resetDevice();
 
-    public void setBrightness(int percent);
+    void setBrightness(int percent);
 
-    public void screenOff();
+    void screenOff();
 
-    public void getSerialNumber();
+    void getSerialNumber();
 
 
 

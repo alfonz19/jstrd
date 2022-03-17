@@ -1,9 +1,9 @@
 package strd.lib;
 
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.FluxSink;
-import reactor.core.publisher.SynchronousSink;
+import reactor.core.scheduler.Schedulers;
 import reactor.util.function.Tuple2;
+import reactor.util.function.Tuples;
 import strd.lib.hid.HidLibrary;
 
 import java.util.ArrayList;
@@ -18,7 +18,6 @@ public abstract class AbstractStreamDeck implements StreamDeck {
     //TODO MMUCHA: needed??
 //    private final int rowCount;
 //    private final int columnCount;
-    private final boolean[] buttonStates;
 
     private final List<ButtonStateListener> buttonsStateListeners = new ArrayList<>();
 
@@ -33,7 +32,6 @@ public abstract class AbstractStreamDeck implements StreamDeck {
         this.keyCount = keyCount;
 //        this.rowCount = rowCount;
 //        this.columnCount = columnCount;
-        buttonStates = new boolean[this.keyCount];
         registerInputReportListener();
     }
 
@@ -98,7 +96,8 @@ public abstract class AbstractStreamDeck implements StreamDeck {
 
     
     private void registerInputReportListener() {
-        
+        streamDeckHandle.setInputReportListener(new ProcessInputReportListenerInSeparateThread());
+
 //        Consumer<FluxSink<Tuple2<byte[], Integer>>> a = new Consumer<>() {
 //
 //            @Override
@@ -135,5 +134,55 @@ public abstract class AbstractStreamDeck implements StreamDeck {
     @Override
     public int getKeyCount() {
         return keyCount;
+    }
+
+    /**
+     * This complexity is here in place for single reason: fear.
+     * I can easily create {@link HidLibrary.StreamDeckHandle.InputReportListener} which will call
+     * {@link #processInputReport} directly. But then I'm doing all listener logic, which might be time intensive
+     * using thread related to HID, and on linux this seems to be some OS thread. I don't want to hold it too long.
+     *
+     * So while long and a little garbage collection 'heavy' (2 pointless objects per button press), I'm using Flux
+     * to call listeners in separate thread.
+     *
+     * Flux is not being propagated out from this, as I don't want to make this a reactive app(because not everyone
+     * needs to be familiar enough with it.)
+     */
+    //TODO MMUCHA: dedicated thread?
+    private class ProcessInputReportListenerInSeparateThread implements HidLibrary.StreamDeckHandle.InputReportListener {
+        private Consumer<Tuple2<byte[], Integer>> consumer;
+        private final boolean[] buttonStates = new boolean[keyCount];
+
+
+        public ProcessInputReportListenerInSeparateThread() {
+            Flux.<Tuple2<byte[], Integer>>create(sink -> consumer = sink::next)
+                    .publishOn(Schedulers.single())
+                    .subscribe(this::processInputReport);
+        }
+
+        @Override
+        public void onInputReport(byte[] reportData, int reportLength) {
+            consumer.accept(Tuples.of(reportData, reportLength));
+        }
+
+        private void processInputReport(Tuple2<byte[], Integer> tuple2) {
+            byte[] reportData = tuple2.getT1();
+            int reportLength = tuple2.getT2();
+
+            int maxIndex = Math.min(keyCount, reportLength);
+            for(int buttonIndex = 0; buttonIndex < maxIndex; buttonIndex++) {
+                boolean oldState = buttonStates[buttonIndex];
+                boolean newState = readValueForIthButton(reportData, buttonIndex) != 0;
+
+                if (newState != oldState) {
+                    for (ButtonStateListener buttonsStateListener : buttonsStateListeners) {
+                        buttonsStateListener.buttonStateUpdated(buttonIndex, newState);
+                    }
+                }
+
+                buttonStates[buttonIndex] = newState;
+            }
+            buttonsStateListeners.forEach(e->e.buttonsStateUpdated(buttonStates));
+        }
     }
 }

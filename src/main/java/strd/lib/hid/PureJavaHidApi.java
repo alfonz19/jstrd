@@ -59,6 +59,7 @@ public class PureJavaHidApi implements HidLibrary {
 
         @Override
         public void setInputReportListener(InputReportListener inputReportListener) {
+            assertOpenedDevice();
             hidDevice.setInputReportListener((source, reportID, reportData, reportLength) ->
                     inputReportListener.onInputReport(reportData, reportLength));
         }
