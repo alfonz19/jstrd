@@ -1,18 +1,19 @@
-package strd.lib;
+package strd.lib.hid;
 
 import purejavahidapi.HidDevice;
 import purejavahidapi.HidDeviceInfo;
-import strd.lib.hid.StreamDeckHandle;
-import strd.lib.hid.StreamDeckInfo;
+import strd.lib.StdrException;
+import strd.lib.StreamDeckVariant;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class PureJavaHidStreamDeckManager extends AbstractStreamDeckManager implements StreamDeckManager {
+public class PureJavaHid implements HidLibrary {
+
     @Override
-    public List<StreamDeckInfo> findStreamDeckDevices() {
+    public List<HidLibrary.StreamDeckInfo> findStreamDeckDevices() {
         return purejavahidapi.PureJavaHidApi.enumerateDevices()
                 .stream()
                 .map(info -> {
@@ -21,7 +22,7 @@ public class PureJavaHidStreamDeckManager extends AbstractStreamDeckManager impl
                     String productString = info.getProductString();
                     String serialNumberString = info.getSerialNumberString();
                     return StreamDeckVariant.valueOf(vendorId, productId)
-                            .map(streamDeckVariant -> new StreamDeckInfo(vendorId,
+                            .map(streamDeckVariant -> new HidLibrary.StreamDeckInfo(vendorId,
                                     productId,
                                     streamDeckVariant,
                                     serialNumberString,
@@ -34,12 +35,7 @@ public class PureJavaHidStreamDeckManager extends AbstractStreamDeckManager impl
     }
 
     @Override
-    public StreamDeck openConnection(StreamDeckInfo streamDeckInfo) {
-        StreamDeckHandle streamDeckHandle = createStreamDeckHandle(streamDeckInfo);
-        return streamDeckInfo.getStreamDeckVariant().create(streamDeckHandle);
-    }
-
-    private StreamDeckHandle createStreamDeckHandle(StreamDeckInfo streamDeckInfo) {
+    public StreamDeckHandle createStreamDeckHandle(HidLibrary.StreamDeckInfo streamDeckInfo) {
         try {
             HidDeviceInfo internalRepresentation = (HidDeviceInfo) streamDeckInfo.getInternalRepresentation();
             HidDevice openedDevice = purejavahidapi.PureJavaHidApi.openDevice(internalRepresentation);
@@ -54,9 +50,9 @@ public class PureJavaHidStreamDeckManager extends AbstractStreamDeckManager impl
     private static class PureJavaHidApiStreamDeckHandle implements StreamDeckHandle {
 
         private HidDevice hidDevice;
-        private final StreamDeckInfo streamDeckInfo;
+        private final HidLibrary.StreamDeckInfo streamDeckInfo;
 
-        public PureJavaHidApiStreamDeckHandle(HidDevice hidDevice, StreamDeckInfo streamDeckInfo) {
+        public PureJavaHidApiStreamDeckHandle(HidDevice hidDevice, HidLibrary.StreamDeckInfo streamDeckInfo) {
             this.hidDevice = hidDevice;
             this.streamDeckInfo = streamDeckInfo;
         }
@@ -113,7 +109,7 @@ public class PureJavaHidStreamDeckManager extends AbstractStreamDeckManager impl
         }
 
         @Override
-        public StreamDeckInfo getStreamDeckInfo() {
+        public HidLibrary.StreamDeckInfo getStreamDeckInfo() {
             return streamDeckInfo;
         }
     }

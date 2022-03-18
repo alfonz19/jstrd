@@ -1,10 +1,10 @@
 package strd.lib;
 
-import strd.lib.hid.StreamDeckInfo;
+import strd.lib.hid.HidLibrary;
 
 public interface StreamDeck extends AutoCloseable {
 
-    StreamDeckInfo getStreamDeckInfo();
+    HidLibrary.StreamDeckInfo getStreamDeckInfo();
     boolean isClosed();
     void close();
     int getKeyCount();
@@ -22,25 +22,25 @@ public interface StreamDeck extends AutoCloseable {
 
     /**
      * Issue request to device to fetch its serial number. Probably pointless, as
-     * {@link StreamDeckInfo#getSerialNumberString} seems to return the same string.
+     * {@link HidLibrary.StreamDeckInfo#getSerialNumberString} seems to return the same string.
      * @return serial number of device
      */
     String getSerialNumber();
 
 
     interface ButtonStateListener {
-        void buttonsStateUpdated(StreamDeckInfo streamDeckInfo, boolean[] buttonStates);
-        void buttonStateUpdated(StreamDeckInfo streamDeckInfo, int buttonIndex, boolean buttonState);
+        void buttonsStateUpdated(HidLibrary.StreamDeckInfo streamDeckInfo, boolean[] buttonStates);
+        void buttonStateUpdated(HidLibrary.StreamDeckInfo streamDeckInfo, int buttonIndex, boolean buttonState);
 
         class Adapter implements ButtonStateListener {
 
             @Override
-            public void buttonsStateUpdated(StreamDeckInfo streamDeckInfo, boolean[] buttonStates) {
+            public void buttonsStateUpdated(HidLibrary.StreamDeckInfo streamDeckInfo, boolean[] buttonStates) {
                 //no op
             }
 
             @Override
-            public void buttonStateUpdated(StreamDeckInfo streamDeckInfo,
+            public void buttonStateUpdated(HidLibrary.StreamDeckInfo streamDeckInfo,
                                            int buttonIndex,
                                            boolean buttonState) {
                 //no op
@@ -49,6 +49,6 @@ public interface StreamDeck extends AutoCloseable {
     }
 
     interface DeviceRemovalListener {
-        void deviceRemoved(StreamDeckInfo streamDeckInfo);
+        void deviceRemoved(HidLibrary.StreamDeckInfo streamDeckInfo);
     }
 }

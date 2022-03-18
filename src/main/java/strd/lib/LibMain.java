@@ -1,6 +1,6 @@
 package strd.lib;
 
-import strd.lib.hid.StreamDeckInfo;
+import strd.lib.hid.HidLibrary;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -22,48 +22,41 @@ public class LibMain {
         new LibMain().run();
     }
 
-//    private void run() {
-//        ServiceLoader<HidLibrary> load = ServiceLoader.load(HidLibrary.class);
-//        StreamSupport.stream(load.spliterator(), false)
-//                .findFirst()
-//                .ifPresentOrElse(this::run, errorMessage("No HID library found, Unable to proceed."));
-//    }
-
     private void run() {
-        ServiceLoader<StreamDeckManager> load = ServiceLoader.load(StreamDeckManager.class);
+        ServiceLoader<HidLibrary> load = ServiceLoader.load(HidLibrary.class);
         StreamSupport.stream(load.spliterator(), false)
                 .findFirst()
                 .ifPresentOrElse(this::run, errorMessage("No HID library found, Unable to proceed."));
     }
 
-    private void run(/*HidLibrary hidLibrary*/StreamDeckManager streamDeckManager) {
-//        StreamDeckFactory factory = new StreamDeckFactory(hidLibrary);
-//        List<StreamDeckInfo> streamDeckDevices = factory.findStreamDeckDevices();
-        List<StreamDeckInfo> streamDeckDevices = streamDeckManager.findStreamDeckDevices();
+    private void run(HidLibrary hidLibrary) {
+        StreamDeckManager streamDeckManager = new StreamDeckManager(hidLibrary);
+        List<HidLibrary.StreamDeckInfo> streamDeckDevices = streamDeckManager.findStreamDeckDevices();
 
 
         String foundStreamDeckDevicesString = streamDeckDevices.stream()
-                .map(StreamDeckInfo::toString)
+                .map(HidLibrary.StreamDeckInfo::toString)
                 .collect(Collectors.joining("\n",
                         "-----All found streamdeck devices-----\n",
                         "--------------------------------------\n"));
         System.out.println(foundStreamDeckDevicesString);
+        System.out.println("Ready to go.");
 
 
         streamDeckDevices.stream()
                 .filter(e -> e.getSerialNumberString().equals("DL49K1A69132"))
                 .findFirst()
-                .ifPresentOrElse(streamDeckInfo -> testRunMyStreamDeck(/*factory*/streamDeckManager, streamDeckInfo),
+                .ifPresentOrElse(streamDeckInfo -> testRunMyStreamDeck(streamDeckManager, streamDeckInfo),
                         errorMessage("Unable to find selected streamdeck."));
     }
 
-    private void testRunMyStreamDeck(/*StreamDeckFactory factory*/StreamDeckManager streamDeckManager, StreamDeckInfo streamDeckInfo) {
+    private void testRunMyStreamDeck(StreamDeckManager streamDeckManager, HidLibrary.StreamDeckInfo streamDeckInfo) {
         WaitUntilNotTerminated waitUntilNotTerminated = new WaitUntilNotTerminated(250);
 
-        try (StreamDeck streamDeck = /*factory*/streamDeckManager.openConnection(streamDeckInfo)) {
+        try (StreamDeck streamDeck = streamDeckManager.openConnection(streamDeckInfo)) {
             streamDeck.addButtonsStateUpdatedListener(new StreamDeck.ButtonStateListener.Adapter() {
                 @Override
-                public void buttonStateUpdated(StreamDeckInfo streamDeckInfo,
+                public void buttonStateUpdated(HidLibrary.StreamDeckInfo streamDeckInfo,
                                                int buttonIndex,
                                                boolean buttonState) {
                     log.info("Button {} {}", buttonIndex, buttonState ? "pressed" : "released");

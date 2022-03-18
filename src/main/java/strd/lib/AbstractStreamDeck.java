@@ -4,8 +4,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
+import strd.lib.hid.HidLibrary;
 import strd.lib.hid.StreamDeckHandle;
-import strd.lib.hid.StreamDeckInfo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +23,7 @@ public abstract class AbstractStreamDeck implements StreamDeck {
     private final List<ButtonStateListener> buttonsStateListeners = new ArrayList<>();
     //TODO MMUCHA: externalize
     private int lastSetScreenBrightness = 10;
-    private StreamDeckInfo streamDeckInfo;
+    private HidLibrary.StreamDeckInfo streamDeckInfo;
 
     public AbstractStreamDeck(StreamDeckHandle streamDeckHandle,
                               int keyCount,
@@ -103,7 +103,7 @@ public abstract class AbstractStreamDeck implements StreamDeck {
     }
 
     @Override
-    public StreamDeckInfo getStreamDeckInfo() {
+    public HidLibrary.StreamDeckInfo getStreamDeckInfo() {
         return streamDeckInfo;
     }
 

@@ -1,13 +1,11 @@
 package strd.lib;
 
 import strd.lib.hid.StreamDeckHandle;
-import strd.lib.hid.StreamDeckInfo;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public enum StreamDeckVariant {

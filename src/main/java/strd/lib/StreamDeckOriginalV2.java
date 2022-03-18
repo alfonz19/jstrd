@@ -1,7 +1,6 @@
 package strd.lib;
 
 import strd.lib.hid.StreamDeckHandle;
-import strd.lib.hid.StreamDeckInfo;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
