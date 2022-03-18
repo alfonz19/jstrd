@@ -1,7 +1,9 @@
 package strd.lib;
 
 import strd.lib.hid.HidLibrary;
+import strd.lib.hid.PureJavaHid;
 
+@SuppressWarnings("unused")
 public interface StreamDeck extends AutoCloseable {
 
     HidLibrary.StreamDeckInfo getStreamDeckInfo();
@@ -22,7 +24,7 @@ public interface StreamDeck extends AutoCloseable {
 
     /**
      * Issue request to device to fetch its serial number. Probably pointless, as
-     * {@link HidLibrary.StreamDeckInfo#getSerialNumberString} seems to return the same string.
+     * {@link PureJavaHid.StreamDeckInfoImpl#getSerialNumberString} seems to return the same string.
      * @return serial number of device
      */
     String getSerialNumber();
@@ -40,9 +42,7 @@ public interface StreamDeck extends AutoCloseable {
             }
 
             @Override
-            public void buttonStateUpdated(HidLibrary.StreamDeckInfo streamDeckInfo,
-                                           int buttonIndex,
-                                           boolean buttonState) {
+            public void buttonStateUpdated(HidLibrary.StreamDeckInfo streamDeckInfo, int buttonIndex, boolean buttonState) {
                 //no op
             }
         }

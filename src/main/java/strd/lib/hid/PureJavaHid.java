@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 public class PureJavaHid implements HidLibrary {
 
     @Override
-    public List<HidLibrary.StreamDeckInfo> findStreamDeckDevices() {
+    public List<StreamDeckInfo> findStreamDeckDevices() {
         return purejavahidapi.PureJavaHidApi.enumerateDevices()
                 .stream()
                 .map(info -> {
@@ -22,11 +22,8 @@ public class PureJavaHid implements HidLibrary {
                     String productString = info.getProductString();
                     String serialNumberString = info.getSerialNumberString();
                     return StreamDeckVariant.valueOf(vendorId, productId)
-                            .map(streamDeckVariant -> new HidLibrary.StreamDeckInfo(vendorId,
-                                    productId,
+                            .map(streamDeckVariant -> new StreamDeckInfoImpl(
                                     streamDeckVariant,
-                                    serialNumberString,
-                                    productString,
                                     info));
                 })
                 .filter(Optional::isPresent)
@@ -35,9 +32,9 @@ public class PureJavaHid implements HidLibrary {
     }
 
     @Override
-    public StreamDeckHandle createStreamDeckHandle(HidLibrary.StreamDeckInfo streamDeckInfo) {
+    public StreamDeckHandle createStreamDeckHandle(StreamDeckInfo streamDeckInfo) {
         try {
-            HidDeviceInfo internalRepresentation = (HidDeviceInfo) streamDeckInfo.getInternalRepresentation();
+            HidDeviceInfo internalRepresentation = ((StreamDeckInfoImpl) streamDeckInfo).getInternalRepresentation();
             HidDevice openedDevice = purejavahidapi.PureJavaHidApi.openDevice(internalRepresentation);
             PureJavaHidApiStreamDeckHandle result = new PureJavaHidApiStreamDeckHandle(openedDevice, streamDeckInfo);
             result.setDeviceRemovalListener(e -> {/*do nothing*/});
@@ -50,9 +47,9 @@ public class PureJavaHid implements HidLibrary {
     private static class PureJavaHidApiStreamDeckHandle implements StreamDeckHandle {
 
         private HidDevice hidDevice;
-        private final HidLibrary.StreamDeckInfo streamDeckInfo;
+        private final StreamDeckInfo streamDeckInfo;
 
-        public PureJavaHidApiStreamDeckHandle(HidDevice hidDevice, HidLibrary.StreamDeckInfo streamDeckInfo) {
+        public PureJavaHidApiStreamDeckHandle(HidDevice hidDevice, StreamDeckInfo streamDeckInfo) {
             this.hidDevice = hidDevice;
             this.streamDeckInfo = streamDeckInfo;
         }
@@ -109,8 +106,65 @@ public class PureJavaHid implements HidLibrary {
         }
 
         @Override
-        public HidLibrary.StreamDeckInfo getStreamDeckInfo() {
+        public StreamDeckInfo getStreamDeckInfo() {
             return streamDeckInfo;
+        }
+    }
+
+    public static class StreamDeckInfoImpl implements StreamDeckInfo {
+        private final short vendorId;
+        private final short productId;
+        private final StreamDeckVariant streamDeckVariant;
+        private final String serialNumberString;
+        private final String productString;
+        private final HidDeviceInfo internalRepresentation;
+
+        public StreamDeckInfoImpl(StreamDeckVariant streamDeckVariant, HidDeviceInfo hidDeviceInfo) {
+            this.streamDeckVariant = streamDeckVariant;
+            this.vendorId = hidDeviceInfo.getVendorId();
+            this.productId = hidDeviceInfo.getProductId();
+            this.serialNumberString = hidDeviceInfo.getSerialNumberString();
+            this.productString = hidDeviceInfo.getProductString();
+            this.internalRepresentation = hidDeviceInfo;
+        }
+
+        @Override
+        public short getVendorId() {
+            return vendorId;
+        }
+
+        @Override
+        public short getProductId() {
+            return productId;
+        }
+
+        @Override
+        public StreamDeckVariant getStreamDeckVariant() {
+            return streamDeckVariant;
+        }
+
+        public HidDeviceInfo getInternalRepresentation() {
+            return internalRepresentation;
+        }
+
+        @Override
+        public String getSerialNumberString() {
+            return serialNumberString;
+        }
+
+        @Override
+        public String getProductString() {
+            return productString;
+        }
+
+        @Override
+        public String toString() {
+            return "StreamDeckInfo {\n" + "\tvendorId=" + vendorId + ",\n" +
+                    "\tproductId=" + productId + ",\n" +
+                    "\tstreamDeckVariant=" + streamDeckVariant + ",\n" +
+                    "\tserialNumberString='" + serialNumberString + '\'' + ",\n" +
+                    "\tproductString='" + productString + '\'' + "\n" +
+                    '}';
         }
     }
 }
