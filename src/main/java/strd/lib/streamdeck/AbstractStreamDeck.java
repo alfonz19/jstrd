@@ -89,11 +89,6 @@ public abstract class AbstractStreamDeck implements StreamDeck {
     }
 
     @Override
-    public int getKeyCount() {
-        return keyCount;
-    }
-
-    @Override
     public StreamDeckInfo getStreamDeckInfo() {
         return streamDeckInfo;
     }

@@ -9,7 +9,6 @@ public interface StreamDeck extends AutoCloseable {
     HidLibrary.StreamDeckInfo getStreamDeckInfo();
     boolean isClosed();
     void close();
-    int getKeyCount();
     void addButtonsStateUpdatedListener(ButtonStateListener buttonsStateUpdatedListener);
     void removeButtonsStateUpdatedListener(ButtonStateListener buttonsStateUpdatedListener);
     void removeAllButtonsStateUpdatedListeners();

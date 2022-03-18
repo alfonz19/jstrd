@@ -68,14 +68,15 @@ public class LibMain {
 //                    OOOOO
 //                    OOOOO
 //                    OOOOX
-                    if (buttonIndex == streamDeck.getKeyCount() - 1 && buttonState) {
+                    int keyCount = streamDeck.getStreamDeckInfo().getStreamDeckVariant().getKeyCount();
+                    if (buttonIndex == keyCount - 1 && buttonState) {
                         waitUntilNotTerminated.terminate();
 
 //                    RESET
 //                    OOOOO
 //                    OOOOO
 //                    OOOXO
-                    } else if (buttonIndex == streamDeck.getKeyCount() - 2 && buttonState) {
+                    } else if (buttonIndex == keyCount - 2 && buttonState) {
                         streamDeck.resetDevice();
 
 //                    BRIGHTNESS
