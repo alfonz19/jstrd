@@ -36,15 +36,15 @@ public class PureJavaHidStreamDeckManager extends AbstractStreamDeckManager impl
     @Override
     public StreamDeck openConnection(StreamDeckInfo streamDeckInfo) {
         StreamDeckHandle streamDeckHandle = createStreamDeckHandle(streamDeckInfo);
-        return streamDeckInfo.getStreamDeckVariant().create(streamDeckInfo, streamDeckHandle);
+        return streamDeckInfo.getStreamDeckVariant().create(streamDeckHandle);
     }
 
     private StreamDeckHandle createStreamDeckHandle(StreamDeckInfo streamDeckInfo) {
         try {
             HidDeviceInfo internalRepresentation = (HidDeviceInfo) streamDeckInfo.getInternalRepresentation();
             HidDevice openedDevice = purejavahidapi.PureJavaHidApi.openDevice(internalRepresentation);
-            PureJavaHidApiStreamDeckHandle result = new PureJavaHidApiStreamDeckHandle(openedDevice);
-            result.setDeviceRemovalListener(() -> {/*do nothing*/});
+            PureJavaHidApiStreamDeckHandle result = new PureJavaHidApiStreamDeckHandle(openedDevice, streamDeckInfo);
+            result.setDeviceRemovalListener(e -> {/*do nothing*/});
             return result;
         } catch (IOException e) {
             throw new StdrException(e);
@@ -54,9 +54,11 @@ public class PureJavaHidStreamDeckManager extends AbstractStreamDeckManager impl
     private static class PureJavaHidApiStreamDeckHandle implements StreamDeckHandle {
 
         private HidDevice hidDevice;
+        private final StreamDeckInfo streamDeckInfo;
 
-        public PureJavaHidApiStreamDeckHandle(HidDevice hidDevice) {
+        public PureJavaHidApiStreamDeckHandle(HidDevice hidDevice, StreamDeckInfo streamDeckInfo) {
             this.hidDevice = hidDevice;
+            this.streamDeckInfo = streamDeckInfo;
         }
 
         @Override
@@ -80,7 +82,7 @@ public class PureJavaHidStreamDeckManager extends AbstractStreamDeckManager impl
                 //regardless if user want's or not, this device was removed, so we call close to have up-to-date info, that
                 //this device is closed.
                 close();
-                deviceRemovalListener.onDeviceRemoved();
+                deviceRemovalListener.onDeviceRemoved(streamDeckInfo);
             });
         }
 
@@ -108,6 +110,11 @@ public class PureJavaHidStreamDeckManager extends AbstractStreamDeckManager impl
         @Override
         public int setOutputReport(byte reportId, byte[] data, int length) {
             return hidDevice.setOutputReport(reportId, data, length);
+        }
+
+        @Override
+        public StreamDeckInfo getStreamDeckInfo() {
+            return streamDeckInfo;
         }
     }
 }

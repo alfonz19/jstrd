@@ -16,11 +16,13 @@ public interface StreamDeckHandle {
 
     int setOutputReport(byte b, byte[] finalPayload, int length);
 
+    StreamDeckInfo getStreamDeckInfo();
+
     interface InputReportListener {
         void onInputReport(byte[] reportData, int reportLength);
     }
 
     interface DeviceRemovalListener {
-        void onDeviceRemoved();
+        void onDeviceRemoved(StreamDeckInfo streamDeckInfo);
     }
 }

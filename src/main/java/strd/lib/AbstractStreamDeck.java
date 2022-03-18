@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public abstract class AbstractStreamDeck implements StreamDeck {
-    private final StreamDeckInfo streamDeckInfo;
     protected final StreamDeckHandle streamDeckHandle;
 
     //TODO MMUCHA: move to variant.
@@ -24,15 +23,15 @@ public abstract class AbstractStreamDeck implements StreamDeck {
     private final List<ButtonStateListener> buttonsStateListeners = new ArrayList<>();
     //TODO MMUCHA: externalize
     private int lastSetScreenBrightness = 10;
+    private StreamDeckInfo streamDeckInfo;
 
-    public AbstractStreamDeck(StreamDeckInfo streamDeckInfo,
-                              StreamDeckHandle streamDeckHandle,
+    public AbstractStreamDeck(StreamDeckHandle streamDeckHandle,
                               int keyCount,
                               int rowCount,
                               int columnCount) {
 
-        this.streamDeckInfo = streamDeckInfo;
         this.streamDeckHandle = streamDeckHandle;
+        this.streamDeckInfo = streamDeckHandle.getStreamDeckInfo();
         this.keyCount = keyCount;
 //        this.rowCount = rowCount;
 //        this.columnCount = columnCount;
@@ -56,7 +55,7 @@ public abstract class AbstractStreamDeck implements StreamDeck {
 
     @Override
     public void setDeviceRemovalListener(DeviceRemovalListener deviceRemovalListener) {
-        streamDeckHandle.setDeviceRemovalListener(() -> deviceRemovalListener.deviceRemoved(streamDeckInfo));
+        streamDeckHandle.setDeviceRemovalListener(deviceRemovalListener::deviceRemoved);
     }
 
     @Override

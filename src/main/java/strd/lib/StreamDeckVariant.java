@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 public enum StreamDeckVariant {
     STREAM_DECK_MINI(new StreamDeckIdentification(0x0063)),
@@ -17,14 +18,14 @@ public enum StreamDeckVariant {
     STREAM_DECK_MK2(new StreamDeckIdentification(0x0080), StreamDeckOriginalV2::new);
 
     private final List<StreamDeckIdentification> ids;
-    private final BiFunction<StreamDeckInfo, StreamDeckHandle, StreamDeck> ctor;
+    private final Function<StreamDeckHandle, StreamDeck> ctor;
 
-    StreamDeckVariant(List<StreamDeckIdentification> ids, BiFunction<StreamDeckInfo, StreamDeckHandle, StreamDeck> ctor) {
+    StreamDeckVariant(List<StreamDeckIdentification> ids, Function<StreamDeckHandle, StreamDeck> ctor) {
         this.ids = ids;
         this.ctor = ctor;
     }
 
-    StreamDeckVariant(StreamDeckIdentification id, BiFunction<StreamDeckInfo, StreamDeckHandle, StreamDeck> ctor) {
+    StreamDeckVariant(StreamDeckIdentification id, Function<StreamDeckHandle, StreamDeck> ctor) {
         this(Collections.singletonList(id), ctor);
     }
 
@@ -43,8 +44,8 @@ public enum StreamDeckVariant {
                 .findFirst();
     }
 
-    public StreamDeck create(StreamDeckInfo streamDeckInfo, StreamDeckHandle streamDeckHandle) {
-        return ctor.apply(streamDeckInfo, streamDeckHandle);
+    public StreamDeck create(StreamDeckHandle streamDeckHandle) {
+        return ctor.apply(streamDeckHandle);
     }
 
     private static class StreamDeckIdentification {
