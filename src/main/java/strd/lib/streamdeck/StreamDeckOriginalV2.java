@@ -1,10 +1,9 @@
-package strd.lib;
+package strd.lib.streamdeck;
 
 import strd.lib.hid.StreamDeckHandle;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.TooManyListenersException;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;

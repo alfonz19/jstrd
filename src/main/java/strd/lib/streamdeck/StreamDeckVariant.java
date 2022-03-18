@@ -1,5 +1,6 @@
-package strd.lib;
+package strd.lib.streamdeck;
 
+import strd.lib.Constants;
 import strd.lib.hid.StreamDeckHandle;
 
 import java.util.Arrays;

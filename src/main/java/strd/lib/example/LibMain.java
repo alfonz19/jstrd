@@ -1,5 +1,8 @@
-package strd.lib;
+package strd.lib.example;
 
+import strd.lib.streamdeck.StreamDeck;
+import strd.lib.streamdeck.StreamDeckManager;
+import strd.lib.util.WaitUntilNotTerminated;
 import strd.lib.hid.HidLibrary;
 
 import javax.imageio.ImageIO;

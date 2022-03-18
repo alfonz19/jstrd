@@ -1,4 +1,4 @@
-package strd.lib;
+package strd.lib.util;
 
 public class WaitUntilNotTerminated {
 

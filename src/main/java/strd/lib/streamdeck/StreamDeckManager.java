@@ -1,4 +1,4 @@
-package strd.lib;
+package strd.lib.streamdeck;
 
 import strd.lib.hid.HidLibrary;
 import strd.lib.hid.StreamDeckHandle;

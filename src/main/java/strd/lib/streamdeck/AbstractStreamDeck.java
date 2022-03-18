@@ -1,4 +1,4 @@
-package strd.lib;
+package strd.lib.streamdeck;
 
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
@@ -6,6 +6,7 @@ import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 import strd.lib.hid.HidLibrary.StreamDeckInfo;
 import strd.lib.hid.StreamDeckHandle;
+import strd.lib.streamdeck.StreamDeck;
 
 import java.util.ArrayList;
 import java.util.List;

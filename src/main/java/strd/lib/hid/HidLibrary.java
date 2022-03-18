@@ -1,6 +1,6 @@
 package strd.lib.hid;
 
-import strd.lib.StreamDeckVariant;
+import strd.lib.streamdeck.StreamDeckVariant;
 
 import java.util.List;
 

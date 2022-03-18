@@ -3,7 +3,7 @@ package strd.lib.hid;
 import purejavahidapi.HidDevice;
 import purejavahidapi.HidDeviceInfo;
 import strd.lib.StdrException;
-import strd.lib.StreamDeckVariant;
+import strd.lib.streamdeck.StreamDeckVariant;
 
 import java.io.IOException;
 import java.util.List;
