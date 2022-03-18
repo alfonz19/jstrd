@@ -4,7 +4,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
-import strd.lib.hid.HidLibrary;
+import strd.lib.hid.HidLibrary.StreamDeckInfo;
 import strd.lib.hid.StreamDeckHandle;
 
 import java.util.ArrayList;
@@ -14,27 +14,18 @@ import java.util.function.Consumer;
 public abstract class AbstractStreamDeck implements StreamDeck {
     protected final StreamDeckHandle streamDeckHandle;
 
-    //TODO MMUCHA: move to variant.
     private final int keyCount;
-    //TODO MMUCHA: needed??
-//    private final int rowCount;
-//    private final int columnCount;
 
     private final List<ButtonStateListener> buttonsStateListeners = new ArrayList<>();
     //TODO MMUCHA: externalize
     private int lastSetScreenBrightness = 10;
-    private HidLibrary.StreamDeckInfo streamDeckInfo;
+    private final StreamDeckInfo streamDeckInfo;
 
-    public AbstractStreamDeck(StreamDeckHandle streamDeckHandle,
-                              int keyCount,
-                              int rowCount,
-                              int columnCount) {
+    public AbstractStreamDeck(StreamDeckHandle streamDeckHandle) {
 
         this.streamDeckHandle = streamDeckHandle;
         this.streamDeckInfo = streamDeckHandle.getStreamDeckInfo();
-        this.keyCount = keyCount;
-//        this.rowCount = rowCount;
-//        this.columnCount = columnCount;
+        this.keyCount = streamDeckHandle.getStreamDeckInfo().getStreamDeckVariant().getKeyCount();
         registerInputReportListener();
     }
 
@@ -102,7 +93,7 @@ public abstract class AbstractStreamDeck implements StreamDeck {
     }
 
     @Override
-    public HidLibrary.StreamDeckInfo getStreamDeckInfo() {
+    public StreamDeckInfo getStreamDeckInfo() {
         return streamDeckInfo;
     }
 

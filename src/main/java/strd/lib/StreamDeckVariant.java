@@ -13,25 +13,37 @@ public enum StreamDeckVariant {
     STREAM_DECK_ORIGINAL(new StreamDeckIdentification(0x0060)),
     STREAM_DECK_ORIGINAL_V2(new StreamDeckIdentification(0x006d)),
     STREAM_DECK_XL(new StreamDeckIdentification(0x006c)),
-    STREAM_DECK_MK2(new StreamDeckIdentification(0x0080), StreamDeckOriginalV2::new);
+    STREAM_DECK_MK2(3, 5, new StreamDeckIdentification(0x0080), StreamDeckOriginalV2::new);
 
+    private final int keyCount;
+    private final int rowCount;
+    private final int columnCount;
     private final List<StreamDeckIdentification> ids;
     private final Function<StreamDeckHandle, StreamDeck> ctor;
 
-    StreamDeckVariant(List<StreamDeckIdentification> ids, Function<StreamDeckHandle, StreamDeck> ctor) {
+    StreamDeckVariant(int rowCount,
+                      int columnCount,
+                      List<StreamDeckIdentification> ids,
+                      Function<StreamDeckHandle, StreamDeck> ctor) {
+        this.keyCount = rowCount * columnCount;
+        this.rowCount = rowCount;
+        this.columnCount = columnCount;
         this.ids = ids;
         this.ctor = ctor;
     }
 
-    StreamDeckVariant(StreamDeckIdentification id, Function<StreamDeckHandle, StreamDeck> ctor) {
-        this(Collections.singletonList(id), ctor);
+    StreamDeckVariant(int rowCount,
+                      int columnCount,
+                      StreamDeckIdentification id,
+                      Function<StreamDeckHandle, StreamDeck> ctor) {
+        this(rowCount, columnCount, Collections.singletonList(id), ctor);
     }
 
     /**
      * For devices we know about, but aren't supported.
      */
     StreamDeckVariant(StreamDeckIdentification id) {
-        this(id, null);
+        this(0, 0, id, null);
     }
 
     public static Optional<StreamDeckVariant> valueOf(int vendorId, int productId) {
@@ -44,6 +56,18 @@ public enum StreamDeckVariant {
 
     public StreamDeck create(StreamDeckHandle streamDeckHandle) {
         return ctor.apply(streamDeckHandle);
+    }
+
+    public int getKeyCount() {
+        return keyCount;
+    }
+
+    public int getRowCount() {
+        return rowCount;
+    }
+
+    public int getColumnCount() {
+        return columnCount;
     }
 
     private static class StreamDeckIdentification {

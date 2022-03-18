@@ -13,17 +13,9 @@ public class StreamDeckOriginalV2 extends AbstractStreamDeck {
 
     private static final Logger log = LoggerFactory.getLogger(StreamDeckOriginalV2.class);
 
-    public static final int KEY_COUNT = 15;
-    public static final int ROW_COUNT = 3;
-    public static final int COLUMN_COUNT = 5;
-
     public StreamDeckOriginalV2(StreamDeckHandle streamDeckHandle) {
-        super(streamDeckHandle, KEY_COUNT, ROW_COUNT, COLUMN_COUNT);
+        super(streamDeckHandle);
     }
-
-    //----------------------------------
-
-    //            private static final byte[] SET_BRIGHTNESS_REQUEST = createSetBrightnessRequest();
 
 
     @Override
