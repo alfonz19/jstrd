@@ -77,6 +77,12 @@
       <version>2.11.0</version>
     </dependency>
 
+    <dependency>
+      <groupId>org.hid4java</groupId>
+      <artifactId>hid4java</artifactId>
+      <version>0.7.0</version>
+    </dependency>
+
 
   </dependencies>
 
