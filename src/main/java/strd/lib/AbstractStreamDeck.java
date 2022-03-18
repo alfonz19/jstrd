@@ -68,7 +68,6 @@ public abstract class AbstractStreamDeck implements StreamDeck {
 
     @Override
     public final void screenOff() {
-        //TODO MMUCHA: store last brightness level.
         setBrightness(0);
     }
 
