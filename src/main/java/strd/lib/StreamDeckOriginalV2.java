@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 public class StreamDeckOriginalV2 extends AbstractStreamDeck {
 
+    public static final byte[] RESET_DEVICE_PAYLOAD = createResetDeviceRequest();
     private static final Logger log = LoggerFactory.getLogger(StreamDeckOriginalV2.class);
 
     public StreamDeckOriginalV2(StreamDeckHandle streamDeckHandle) {
@@ -41,10 +42,7 @@ public class StreamDeckOriginalV2 extends AbstractStreamDeck {
 
     @Override
     public void resetDevice() {
-        //TODO MMUCHA: make constant.
-        byte[] resetPayload = createResetDeviceRequest();
-
-        int i = this.streamDeckHandle.setFeatureReport((byte) 0x03, resetPayload, resetPayload.length);
+        int i = this.streamDeckHandle.setFeatureReport((byte) 0x03, RESET_DEVICE_PAYLOAD, RESET_DEVICE_PAYLOAD.length);
         if (i == -1) {
             log.warn("Resetting device failed");
         } else {
@@ -52,7 +50,7 @@ public class StreamDeckOriginalV2 extends AbstractStreamDeck {
         }
     }
 
-    private byte[] createResetDeviceRequest() {
+    private static byte[] createResetDeviceRequest() {
         byte[] resetPayload = new byte[32];
         resetPayload[0] = 0x02;
         return resetPayload;
@@ -63,14 +61,12 @@ public class StreamDeckOriginalV2 extends AbstractStreamDeck {
         //fix incorrect input.
         percent = (byte)Math.min(Math.max(percent, 0), 100);
 
-        //TODO MMUCHA: constant
         byte[] setBrightnessRequest = createSetBrightnessRequest();
         setBrightnessRequest[1] = (byte)percent;
         this.streamDeckHandle.setFeatureReport((byte) 0x03, setBrightnessRequest, setBrightnessRequest.length);
-
     }
 
-    private static byte[] createSetBrightnessRequest() {
+    private byte[] createSetBrightnessRequest() {
         byte[] payload = new byte[32];
         payload[0] = 0x08;
 
