@@ -98,7 +98,11 @@ public abstract class AbstractStreamDeck implements StreamDeck {
     }
 
     /**
-     * This complexity is here in place for single reason: fear.
+     * This complexity is here in place for single reason: fear. I can see java thread creation in HID library source,
+     * but the thread name is really suspicious and I don't see that name assigned anywhere. Better be safe than sorry,
+     * I will assume, that this is called from some non-java thread, some operating system thread. Probably incorrect,
+     * yet fixing it is easy. So...
+     *
      * I can easily create {@link StreamDeckHandle.InputReportListener} which will call
      * {@link #processInputReport} directly. But then I'm doing all listener logic, which might be time intensive
      * using thread related to HID, and on linux this seems to be some OS thread. I don't want to hold it too long.
@@ -109,7 +113,6 @@ public abstract class AbstractStreamDeck implements StreamDeck {
      * Flux is not being propagated out from this, as I don't want to make this a reactive app(because not everyone
      * needs to be familiar enough with it.)
      */
-    //TODO MMUCHA: is it even needed??? It seems, that it's not system thread, but java thread, since we're polling actively.
     //TODO MMUCHA: dedicated thread?
     private class ProcessInputReportListenerInSeparateThread implements StreamDeckHandle.InputReportListener {
         private Consumer<Tuple2<byte[], Integer>> consumer;
