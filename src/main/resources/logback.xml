@@ -28,5 +28,6 @@
   <logger name="alf" level="all"/>
   <logger name="alf.Main" level="info"/>
   <logger name="HID" level="off"/>
+  <logger name="reactor.util.Loggers" level="off"/>
 
 </configuration>

@@ -4,16 +4,18 @@ import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
-import strd.lib.hid.HidLibrary;
+import strd.lib.hid.StreamDeckHandle;
+import strd.lib.hid.StreamDeckInfo;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
 public abstract class AbstractStreamDeck implements StreamDeck {
-    private final HidLibrary.StreamDeckInfo streamDeckInfo;
-    private final HidLibrary.StreamDeckHandle streamDeckHandle;
+    private final StreamDeckInfo streamDeckInfo;
+    protected final StreamDeckHandle streamDeckHandle;
 
+    //TODO MMUCHA: move to variant.
     private final int keyCount;
     //TODO MMUCHA: needed??
 //    private final int rowCount;
@@ -23,8 +25,8 @@ public abstract class AbstractStreamDeck implements StreamDeck {
     //TODO MMUCHA: externalize
     private int lastSetScreenBrightness = 10;
 
-    public AbstractStreamDeck(HidLibrary.StreamDeckInfo streamDeckInfo,
-                              HidLibrary.StreamDeckHandle streamDeckHandle,
+    public AbstractStreamDeck(StreamDeckInfo streamDeckInfo,
+                              StreamDeckHandle streamDeckHandle,
                               int keyCount,
                               int rowCount,
                               int columnCount) {
@@ -58,33 +60,17 @@ public abstract class AbstractStreamDeck implements StreamDeck {
     }
 
     @Override
-    public void setButtonImage(int buttonIndex, byte[] buttonImage) {
-        streamDeckHandle.setButtonImage(buttonIndex, buttonImage);
-    }
-
-    @Override
-    public void resetDevice() {
-        streamDeckHandle.resetDevice();
-
-    }
-
-    @Override
-    public void setBrightness(int percent) {
-        //TODO MMUCHA: try to replace with fetching actual screen brightness in screenOff.
+    public final void setBrightness(int percent) {
         lastSetScreenBrightness = percent != 0 ? percent : lastSetScreenBrightness;
-        streamDeckHandle.setBrightness(percent);
+        setBrightnessImpl(percent);
     }
+
+    protected abstract void setBrightnessImpl(int percent);
 
     @Override
     public final void screenOff() {
         //TODO MMUCHA: store last brightness level.
         setBrightness(0);
-    }
-
-    @Override
-    public String getSerialNumber() {
-        return streamDeckHandle.getSerialNumber();
-
     }
 
     @Override
@@ -118,13 +104,13 @@ public abstract class AbstractStreamDeck implements StreamDeck {
     }
 
     @Override
-    public HidLibrary.StreamDeckInfo getStreamDeckInfo() {
+    public StreamDeckInfo getStreamDeckInfo() {
         return streamDeckInfo;
     }
 
     /**
      * This complexity is here in place for single reason: fear.
-     * I can easily create {@link HidLibrary.StreamDeckHandle.InputReportListener} which will call
+     * I can easily create {@link StreamDeckHandle.InputReportListener} which will call
      * {@link #processInputReport} directly. But then I'm doing all listener logic, which might be time intensive
      * using thread related to HID, and on linux this seems to be some OS thread. I don't want to hold it too long.
      *
@@ -134,8 +120,9 @@ public abstract class AbstractStreamDeck implements StreamDeck {
      * Flux is not being propagated out from this, as I don't want to make this a reactive app(because not everyone
      * needs to be familiar enough with it.)
      */
+    //TODO MMUCHA: is it even needed??? It seems, that it's not system thread, but java thread, since we're polling actively.
     //TODO MMUCHA: dedicated thread?
-    private class ProcessInputReportListenerInSeparateThread implements HidLibrary.StreamDeckHandle.InputReportListener {
+    private class ProcessInputReportListenerInSeparateThread implements StreamDeckHandle.InputReportListener {
         private Consumer<Tuple2<byte[], Integer>> consumer;
         private final boolean[] buttonStates = new boolean[keyCount];
 

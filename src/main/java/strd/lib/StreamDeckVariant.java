@@ -1,6 +1,7 @@
 package strd.lib;
 
-import strd.lib.hid.HidLibrary;
+import strd.lib.hid.StreamDeckHandle;
+import strd.lib.hid.StreamDeckInfo;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -16,14 +17,14 @@ public enum StreamDeckVariant {
     STREAM_DECK_MK2(new StreamDeckIdentification(0x0080), StreamDeckOriginalV2::new);
 
     private final List<StreamDeckIdentification> ids;
-    private final BiFunction<HidLibrary.StreamDeckInfo, HidLibrary.StreamDeckHandle, StreamDeck> ctor;
+    private final BiFunction<StreamDeckInfo, StreamDeckHandle, StreamDeck> ctor;
 
-    StreamDeckVariant(List<StreamDeckIdentification> ids, BiFunction<HidLibrary.StreamDeckInfo, HidLibrary.StreamDeckHandle, StreamDeck> ctor) {
+    StreamDeckVariant(List<StreamDeckIdentification> ids, BiFunction<StreamDeckInfo, StreamDeckHandle, StreamDeck> ctor) {
         this.ids = ids;
         this.ctor = ctor;
     }
 
-    StreamDeckVariant(StreamDeckIdentification id, BiFunction<HidLibrary.StreamDeckInfo, HidLibrary.StreamDeckHandle, StreamDeck> ctor) {
+    StreamDeckVariant(StreamDeckIdentification id, BiFunction<StreamDeckInfo, StreamDeckHandle, StreamDeck> ctor) {
         this(Collections.singletonList(id), ctor);
     }
 
@@ -42,7 +43,7 @@ public enum StreamDeckVariant {
                 .findFirst();
     }
 
-    public StreamDeck create(HidLibrary.StreamDeckInfo streamDeckInfo, HidLibrary.StreamDeckHandle streamDeckHandle) {
+    public StreamDeck create(StreamDeckInfo streamDeckInfo, StreamDeckHandle streamDeckHandle) {
         return ctor.apply(streamDeckInfo, streamDeckHandle);
     }
 

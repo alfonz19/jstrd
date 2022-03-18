@@ -1,11 +1,14 @@
 package strd.lib;
 
-import reactor.core.publisher.Flux;
-import strd.lib.hid.HidLibrary;
+import strd.lib.hid.StreamDeckInfo;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.ServiceLoader;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -19,20 +22,28 @@ public class LibMain {
         new LibMain().run();
     }
 
+//    private void run() {
+//        ServiceLoader<HidLibrary> load = ServiceLoader.load(HidLibrary.class);
+//        StreamSupport.stream(load.spliterator(), false)
+//                .findFirst()
+//                .ifPresentOrElse(this::run, errorMessage("No HID library found, Unable to proceed."));
+//    }
+
     private void run() {
-        ServiceLoader<HidLibrary> load = ServiceLoader.load(HidLibrary.class);
+        ServiceLoader<StreamDeckManager> load = ServiceLoader.load(StreamDeckManager.class);
         StreamSupport.stream(load.spliterator(), false)
                 .findFirst()
                 .ifPresentOrElse(this::run, errorMessage("No HID library found, Unable to proceed."));
     }
 
-    private void run(HidLibrary hidLibrary) {
-        StreamDeckFactory factory = new StreamDeckFactory(hidLibrary);
-        List<HidLibrary.StreamDeckInfo> streamDeckDevices = factory.findStreamDeckDevices();
+    private void run(/*HidLibrary hidLibrary*/StreamDeckManager streamDeckManager) {
+//        StreamDeckFactory factory = new StreamDeckFactory(hidLibrary);
+//        List<StreamDeckInfo> streamDeckDevices = factory.findStreamDeckDevices();
+        List<StreamDeckInfo> streamDeckDevices = streamDeckManager.findStreamDeckDevices();
 
 
         String foundStreamDeckDevicesString = streamDeckDevices.stream()
-                .map(HidLibrary.StreamDeckInfo::toString)
+                .map(StreamDeckInfo::toString)
                 .collect(Collectors.joining("\n",
                         "-----All found streamdeck devices-----\n",
                         "--------------------------------------\n"));
@@ -42,38 +53,67 @@ public class LibMain {
         streamDeckDevices.stream()
                 .filter(e -> e.getSerialNumberString().equals("DL49K1A69132"))
                 .findFirst()
-                .ifPresentOrElse(streamDeckInfo -> testRunMyStreamDeck(factory, streamDeckInfo),
+                .ifPresentOrElse(streamDeckInfo -> testRunMyStreamDeck(/*factory*/streamDeckManager, streamDeckInfo),
                         errorMessage("Unable to find selected streamdeck."));
     }
 
-    private void testRunMyStreamDeck(StreamDeckFactory factory, HidLibrary.StreamDeckInfo streamDeckInfo) {
+    private void testRunMyStreamDeck(/*StreamDeckFactory factory*/StreamDeckManager streamDeckManager, StreamDeckInfo streamDeckInfo) {
         WaitUntilNotTerminated waitUntilNotTerminated = new WaitUntilNotTerminated(250);
 
-        try (StreamDeck streamDeck = factory.openConnection(streamDeckInfo)) {
+        try (StreamDeck streamDeck = /*factory*/streamDeckManager.openConnection(streamDeckInfo)) {
             streamDeck.addButtonsStateUpdatedListener(new StreamDeck.ButtonStateListener.Adapter() {
                 @Override
-                public void buttonStateUpdated(HidLibrary.StreamDeckInfo streamDeckInfo,
+                public void buttonStateUpdated(StreamDeckInfo streamDeckInfo,
                                                int buttonIndex,
                                                boolean buttonState) {
                     log.info("Button {} {}", buttonIndex, buttonState ? "pressed" : "released");
+
+//                    END
+//                    OOOOO
+//                    OOOOO
+//                    OOOOX
                     if (buttonIndex == streamDeck.getKeyCount() - 1 && buttonState) {
                         waitUntilNotTerminated.terminate();
+
+//                    RESET
+//                    OOOOO
+//                    OOOOO
+//                    OOOXO
                     } else if (buttonIndex == streamDeck.getKeyCount() - 2 && buttonState) {
                         streamDeck.resetDevice();
+
+//                    BRIGHTNESS
+//                    OOOOO
+//                    XXXXX
+//                    OOOOO
                     } else if (buttonIndex >= 5 && buttonIndex <= 9) {
-                        streamDeck.setBrightness((buttonIndex - 4)*10);
+                        streamDeck.setBrightness((buttonIndex - 4)*20);
+
+//                    SCREEN OFF
+//                    OOOOO
+//                    OOOOO
+//                    XOOOO
                     } else if (buttonIndex == 10) {
                         streamDeck.screenOff();
+
+//                    SCREEN ON
+//                    OOOOO
+//                    OOOOO
+//                    OXOOO
                     } else if (buttonIndex == 11) {
                         streamDeck.screenOn();
+//                    COLOR
+//                    OOOOO
+//                    OOOOO
+//                    OOXOO
                     } else if (buttonIndex == 12) {
-                        streamDeck.setBrightness(100);
+                        color(streamDeck);
                     }
                 }
             });
 
-            System.out.println("StreamDeck serial version(A): "+streamDeck.getStreamDeckInfo().getSerialNumberString());
-            System.out.println("StreamDeck serial version(B): "+streamDeck.getSerialNumber());
+//            System.out.println("StreamDeck serial version(A): "+streamDeck.getStreamDeckInfo().getSerialNumberString());
+//            System.out.println("StreamDeck serial version(B): "+streamDeck.getSerialNumber());
 
             waitUntilNotTerminated.start();
         }
@@ -83,11 +123,42 @@ public class LibMain {
         return () -> System.err.println(message);
     }
 
+    public void color(StreamDeck streamDeck) {
+        color((byte)0, Color.RED, streamDeck);
+        color((byte)1, Color.GREEN, streamDeck);
+        color((byte)2, Color.ORANGE, streamDeck);
+        color((byte)3, Color.GRAY, streamDeck);
+        color((byte)4, Color.WHITE, streamDeck);
+        color((byte)5, Color.BLUE, streamDeck);
+        color((byte)6, Color.CYAN, streamDeck);
+        color((byte)7, Color.MAGENTA, streamDeck);
 
+        color((byte)8, Color.RED, streamDeck);
+        color((byte)9, Color.GREEN, streamDeck);
+        color((byte)10, Color.ORANGE, streamDeck);
+        color((byte)11, Color.GRAY, streamDeck);
+        color((byte)12, Color.WHITE, streamDeck);
+        color((byte)13, Color.BLUE, streamDeck);
+        color((byte)14, Color.CYAN, streamDeck);
+    }
 
-    public Consumer<List<Integer>> consumer;
+    private void color(byte buttonIndex, Color color, StreamDeck streamDeck) {
+        byte[] buttonImage = createColoredIcon(color);
+        streamDeck.setButtonImage(buttonIndex, buttonImage);
+    }
 
-    public Flux<Integer> createNumberSequence() {
-        return Flux.create(sink -> LibMain.this.consumer = items -> items.forEach(sink::next));
+    public static final int ICON_SIZE = 72;
+    private static byte[] createColoredIcon(Color color) {
+        BufferedImage off_Image = new BufferedImage(ICON_SIZE, ICON_SIZE, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2 = off_Image.createGraphics();
+        g2.setColor(color);
+        g2.fillRect(0, 0, ICON_SIZE, ICON_SIZE);
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+            ImageIO.write(off_Image, "jpg", bos);
+            g2.dispose();
+            return bos.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException("write failed");
+        }
     }
 }
