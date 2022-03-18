@@ -4,6 +4,7 @@ import strd.lib.hid.StreamDeckHandle;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.TooManyListenersException;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -78,7 +79,7 @@ public class StreamDeckOriginalV2 extends AbstractStreamDeck {
 
     //-----------------
 
-
+    //TODO MMUCHA: optimize, too many pointless array creations.
     @Override
     public void setButtonImage(int buttonIndex, byte[] buttonImage) {
         if (buttonIndex < 0 || buttonIndex > 14) {
