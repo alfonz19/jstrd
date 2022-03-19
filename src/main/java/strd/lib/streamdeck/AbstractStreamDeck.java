@@ -82,7 +82,8 @@ public abstract class AbstractStreamDeck implements StreamDeck {
         streamDeckHandle.setInputReportListener(new ProcessInputReportListenerInSeparateThread());
     }
 
-    //TODO MMUCHA: maybe this is used when not all bytes are sent in one 'packet'?
+    //Maybe this is used when not all bytes are sent in one 'packet'?
+    //
     //for some reason, indices of reported buttons are shifted. First button starts at index 3.
     private byte readValueForIthButton(byte[] reportData, Integer i) {
         return reportData[i + 3];
