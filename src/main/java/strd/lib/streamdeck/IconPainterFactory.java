@@ -1,5 +1,6 @@
 package strd.lib.streamdeck;
 
+import com.sun.jna.platform.unix.X11;
 import strd.lib.StdrException;
 
 import java.util.ServiceLoader;
@@ -24,12 +25,14 @@ public interface IconPainterFactory {
 
     boolean canProcessStreamDeckVariant(StreamDeckVariant streamDeckVariant);
 
-//    IconPainter createEmpty();
+    IconPainter createEmpty();
     IconPainter create(int red, int green, int blue);
 //    IconPainter create(int pixelCountPerIconSide, File file);
 //    IconPainter create(int pixelCountPerIconSide, URI uri);
 
     interface IconPainter {
+        IconPainter fillRect(int x1, int y1, int x2, int y2, int red, int green, int blue);
+        IconPainter drawRect(int x1, int y1, int x2, int y2, int red, int green, int blue);
         byte[] toDeviceNativeFormat();
     }
 

@@ -144,7 +144,13 @@ public class LibMain {
                        IconPainterFactory iconPainter,
                        StreamDeck streamDeck) {
 
-        byte[] buttonImage = iconPainter.create(color.getRed(), color.getGreen(), color.getBlue()).toDeviceNativeFormat();
+        int iconSize = streamDeck.getStreamDeckInfo().getStreamDeckVariant().getPixelCountPerIconSide();
+        int xy1 = iconSize / 3;
+        int xy2 = xy1 * 2;
+
+        byte[] buttonImage = iconPainter.create(color.getRed(), color.getGreen(), color.getBlue())
+                .fillRect(xy1,xy1,xy2,xy2,0,0,0)
+                .toDeviceNativeFormat();
         streamDeck.setButtonImage(buttonIndex, buttonImage);
     }
 
