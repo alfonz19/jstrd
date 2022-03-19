@@ -1,18 +1,19 @@
 package strd.lib.example;
 
+import strd.lib.streamdeck.IconPainterFactory;
 import strd.lib.streamdeck.StreamDeck;
 import strd.lib.streamdeck.StreamDeckManager;
 import strd.lib.util.WaitUntilNotTerminated;
 import strd.lib.hid.HidLibrary;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.ServiceLoader;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import org.slf4j.Logger;
@@ -121,41 +122,50 @@ public class LibMain {
     }
 
     public void color(StreamDeck streamDeck) {
-        color((byte)0, Color.RED, streamDeck);
-        color((byte)1, Color.GREEN, streamDeck);
-        color((byte)2, Color.ORANGE, streamDeck);
-        color((byte)3, Color.GRAY, streamDeck);
-        color((byte)4, Color.WHITE, streamDeck);
-        color((byte)5, Color.BLUE, streamDeck);
-        color((byte)6, Color.CYAN, streamDeck);
-        color((byte)7, Color.MAGENTA, streamDeck);
+        IconPainterFactory iconPainter = IconPainterFactory.findIconPainter(streamDeck);
 
-        color((byte)8, Color.RED, streamDeck);
-        color((byte)9, Color.GREEN, streamDeck);
-        color((byte)10, Color.ORANGE, streamDeck);
-        color((byte)11, Color.GRAY, streamDeck);
-        color((byte)12, Color.WHITE, streamDeck);
-        color((byte)13, Color.BLUE, streamDeck);
-        color((byte)14, Color.CYAN, streamDeck);
+        List<Color> colors = Arrays.asList(Color.RED,
+                Color.GREEN,
+                Color.ORANGE,
+                Color.GRAY,
+                Color.WHITE,
+                Color.BLUE,
+                Color.CYAN,
+                Color.MAGENTA);
+
+        IntStream.range(0, streamDeck.getStreamDeckInfo().getStreamDeckVariant().getKeyCount()).forEach(index -> {
+            Color color = colors.get(index % colors.size());
+            color((byte)index, color, iconPainter, streamDeck);
+
+        });
     }
 
-    private void color(byte buttonIndex, Color color, StreamDeck streamDeck) {
-        byte[] buttonImage = createColoredIcon(color);
+    private void color(byte buttonIndex,
+                       Color color,
+                       IconPainterFactory iconPainter,
+                       StreamDeck streamDeck) {
+
+        byte[] buttonImage = iconPainter.create(color.getRed(), color.getGreen(), color.getBlue()).toDeviceNativeFormat();
         streamDeck.setButtonImage(buttonIndex, buttonImage);
     }
 
-    public static final int ICON_SIZE = 72;
-    private static byte[] createColoredIcon(Color color) {
-        BufferedImage off_Image = new BufferedImage(ICON_SIZE, ICON_SIZE, BufferedImage.TYPE_INT_RGB);
-        Graphics2D g2 = off_Image.createGraphics();
-        g2.setColor(color);
-        g2.fillRect(0, 0, ICON_SIZE, ICON_SIZE);
-        try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-            ImageIO.write(off_Image, "jpg", bos);
-            g2.dispose();
-            return bos.toByteArray();
-        } catch (IOException e) {
-            throw new RuntimeException("write failed");
+    private static class LoopingIndex implements Supplier<Integer> {
+        private final int arraySize;
+        int i;
+
+        public LoopingIndex(int arraySize) {
+            this.arraySize = arraySize;
+            i = 0;
+        }
+
+        @Override
+        public Integer get() {
+            if (i < arraySize) {
+                return i++;
+            } else {
+                i=0;
+                return i++;
+            }
         }
     }
 }

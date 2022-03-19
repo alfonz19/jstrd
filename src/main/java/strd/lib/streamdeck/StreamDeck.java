@@ -17,12 +17,14 @@ public interface StreamDeck extends AutoCloseable {
     void setDeviceRemovalListener(DeviceRemovalListener deviceRemovalListener);
 
     //TODO MMUCHA: should not be here, as it's implementation specific.
-    default void splitNativeImageBytesToPayloadsAndSetButton(int buttonIndex, byte[] buttonImage) {
-        szdaf
-    }
+//    default void splitNativeImageBytesToPayloadsAndSetButton(int buttonIndex, byte[] buttonImage) {
+//        szdaf
+//    }
+//
+//    void splitNativeImageBytesAndProcess(byte[] nativeImageBytes, Consumer<byte[]> processSetImagePayload);
+//    void setButtonImage(int buttonIndex, byte[][] payloadBytes);
+    void setButtonImage(int buttonIndex, byte[] payloadBytes);
 
-    void splitNativeImageBytesAndProcess(byte[] nativeImageBytes, Consumer<byte[]> processSetImagePayload);
-    void setButtonImage(int buttonIndex, byte[][] payloadBytes);
 
     void resetDevice();
     void setBrightness(int percent);
