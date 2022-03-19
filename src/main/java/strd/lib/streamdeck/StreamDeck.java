@@ -3,6 +3,8 @@ package strd.lib.streamdeck;
 import strd.lib.hid.HidLibrary;
 import strd.lib.hid.PureJavaHid;
 
+import java.util.function.Consumer;
+
 @SuppressWarnings("unused")
 public interface StreamDeck extends AutoCloseable {
 
@@ -15,7 +17,13 @@ public interface StreamDeck extends AutoCloseable {
     void setDeviceRemovalListener(DeviceRemovalListener deviceRemovalListener);
 
     //TODO MMUCHA: should not be here, as it's implementation specific.
-    void setButtonImage(int buttonIndex, byte[] buttonImage);
+    default void splitNativeImageBytesToPayloadsAndSetButton(int buttonIndex, byte[] buttonImage) {
+        szdaf
+    }
+
+    void splitNativeImageBytesAndProcess(byte[] nativeImageBytes, Consumer<byte[]> processSetImagePayload);
+    void setButtonImage(int buttonIndex, byte[][] payloadBytes);
+
     void resetDevice();
     void setBrightness(int percent);
     void screenOn();
