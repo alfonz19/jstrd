@@ -16,14 +16,29 @@ public interface StreamDeck extends AutoCloseable {
     void removeAllButtonsStateUpdatedListeners();
     void setDeviceRemovalListener(DeviceRemovalListener deviceRemovalListener);
 
-    //TODO MMUCHA: should not be here, as it's implementation specific.
-//    default void splitNativeImageBytesToPayloadsAndSetButton(int buttonIndex, byte[] buttonImage) {
-//        szdaf
-//    }
-//
-//    void splitNativeImageBytesAndProcess(byte[] nativeImageBytes, Consumer<byte[]> processSetImagePayload);
-//    void setButtonImage(int buttonIndex, byte[][] payloadBytes);
-    void setButtonImage(int buttonIndex, byte[] payloadBytes);
+    /**
+     * Method to be used when setting up the configuration is some app, or by other one-off use.
+     *
+     * @param buttonIndex index of button to be set
+     * @param buttonImage image data in device specific format.
+     */
+    void setButtonImage(int buttonIndex, byte[] buttonImage);
+
+    /**
+     * Method should be used for preparing the data, caching them, and using them with {@link #setButtonImage(byte[][])}
+     * when needed to save some preparing time.
+     *
+     * @param buttonIndex index of button to be set
+     * @param buttonImage image data in device specific format.
+     * @param processSetImagePayload what to do with each packet of (potentially, probably) split image data.
+     */
+    void splitNativeImageBytesAndProcess(int buttonIndex, byte[] buttonImage, Consumer<byte[]> processSetImagePayload);
+
+    /**
+     * sends prepared button image data to device.
+     * @param payloadsBytes
+     */
+    void setButtonImage(byte[][] payloadsBytes);
 
 
     void resetDevice();

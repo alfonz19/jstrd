@@ -5,6 +5,8 @@ import strd.lib.hid.StreamDeckHandle;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import java.util.function.ToDoubleBiFunction;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +82,7 @@ public class StreamDeckOriginalV2 extends AbstractStreamDeck {
 
     //TODO MMUCHA: optimize, too many pointless array creations.
     @Override
-    public void setButtonImage(int buttonIndex, byte[] buttonImage) {
+    public void splitNativeImageBytesAndProcess(int buttonIndex, byte[] buttonImage, Consumer<byte[]> processSetImagePayload) {
         if (buttonIndex < 0 || buttonIndex > 14) {
             log.error("Not existing button: {}", buttonIndex);
             return;
@@ -143,11 +145,10 @@ public class StreamDeckOriginalV2 extends AbstractStreamDeck {
                         bytesAlreadySent);
 
                 long start = System.nanoTime();
-                int i = this.streamDeckHandle.setOutputReport((byte) 0x02, finalPayload, finalPayload.length);
+                processSetImagePayload.accept(finalPayload);
 
                 long diff = System.nanoTime() - start;
-                log.trace("writing done: Written {} bytes, writing done in {}ms",
-                        i,
+                log.trace("writing done in {}ms",
                         TimeUnit.NANOSECONDS.toMillis(diff));
 
                 remainingBytes -= sliceLength;
@@ -162,4 +163,23 @@ public class StreamDeckOriginalV2 extends AbstractStreamDeck {
         }
     }
 
+    @Override
+    public void setButtonImage(byte[][] payloadsBytes) {
+        for (byte[] payloadBytes : payloadsBytes) {
+            //TODO MMUCHA: logging.
+            int result = sendIthPacketSettingButtonImage(payloadBytes);
+        }
+    }
+
+    private int sendIthPacketSettingButtonImage(byte[] payloadBytes) {
+        return this.streamDeckHandle.setOutputReport((byte) 0x02, payloadBytes, payloadBytes.length);
+    }
+
+    @Override
+    public void setButtonImage(int buttonIndex, byte[] buttonImage) {
+        splitNativeImageBytesAndProcess(buttonIndex, buttonImage, bytes-> {
+            //TODO MMUCHA: logging.
+            int result = sendIthPacketSettingButtonImage(bytes);
+        });
+    }
 }
