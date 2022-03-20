@@ -1,7 +1,6 @@
 package strd.lib.streamdeck;
 
-import com.sun.jna.platform.unix.X11;
-import strd.lib.StdrException;
+import strd.lib.StrdException;
 
 import java.util.ServiceLoader;
 
@@ -19,7 +18,7 @@ public interface IconPainterFactory {
                 .map(ServiceLoader.Provider::get)
                 .filter(e -> e.canProcessStreamDeckVariant(streamDeckVariant))
                 .findFirst()
-                .orElseThrow(() -> new StdrException("Cannot find IconPainter for stream deck variant " +
+                .orElseThrow(() -> new StrdException("Cannot find IconPainter for stream deck variant " +
                         streamDeckVariant));
     }
 
