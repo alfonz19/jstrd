@@ -28,6 +28,16 @@ public abstract class AbstractBufferedImageIconPainterFactory implements IconPai
     public static final int MAX_X_MARGIN = 10;
     public static final int MAX_Y_MARGIN = 10;
 
+    //if text is multiline, lets split it, trimming each line, again, no point in printing invisible.
+    //we're limiting multiline output to 10 lines. There is not point printing more lines, unless trying
+    //to make this code fail.
+    public static final int MAX_NUMBER_OF_TEXT_LINES = 10;
+
+    //TODO MMUCHA: externalize constants.
+    //anything below this is unreadable.
+    private static final int MAX_TEXT_LINE_LENGTH = 10;
+
+
     protected final int iconSize;
 
     protected AbstractBufferedImageIconPainterFactory(int iconSize) {
@@ -151,10 +161,11 @@ public abstract class AbstractBufferedImageIconPainterFactory implements IconPai
             int iconWidth = iconSize - xMargin*2;
             int iconHeight = iconSize - yMargin*2;
 
-            //if text is multiline, lets split it, trimming each line, again, no point in printing invisible.
-            //we're limiting multiline output to 10 lines. There is not point printing more lines, unless trying
-            //to make this code fail.
-            List<String> lines = Arrays.stream(text.split("\n")).map(String::trim).limit(10).collect(Collectors.toList());
+            List<String> lines = Arrays.stream(text.split("\n"))
+                    .map(String::trim)
+                    .map(this::shortenLine)
+                    .limit(MAX_NUMBER_OF_TEXT_LINES)
+                    .collect(Collectors.toList());
             int lineCount = lines.size();
             log.trace("Text will be split into {} lines.", lineCount);
 
@@ -211,14 +222,18 @@ public abstract class AbstractBufferedImageIconPainterFactory implements IconPai
             return this;
         }
 
+        private String shortenLine(String text) {
+            return text.length() > MAX_TEXT_LINE_LENGTH
+                    ? text.substring(0, MAX_TEXT_LINE_LENGTH )
+                    : text;
+        }
+
         @Override
         public final byte[] toDeviceNativeFormat() {
             g2.dispose();
             return toNativeImageCallback.apply(bi);
         }
 
-        //--------------------------------------------------------------------
-        //TODO MMUCHA: bounding box!
         private DataToPrintMaximizedText findMaxFontSizeForTextToFit(String text, int iconWidth, int lineHeight) {
             Font initialFont = g2.getFont();
             Font font = initialFont;
