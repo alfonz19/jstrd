@@ -35,7 +35,13 @@ public interface IconPainterFactory {
         IconPainter fillRect(int x1, int y1, int x2, int y2);
         IconPainter drawRect(int x1, int y1, int x2, int y2);
         IconPainter writeText(int x, int y, String text);
-        IconPainter writeTextCentered(String text);
+
+
+        default IconPainter writeTextCentered(String text) {
+            return writeTextCentered(text, 0, 0);
+        }
+
+        IconPainter writeTextCentered(String text, int xmargin, int yMargin);
 
         byte[] toDeviceNativeFormat();
     }

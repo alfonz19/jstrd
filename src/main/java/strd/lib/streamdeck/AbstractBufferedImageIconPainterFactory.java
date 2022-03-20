@@ -25,6 +25,8 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractBufferedImageIconPainterFactory implements IconPainterFactory {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractBufferedImageIconPainterFactory.class);
+    public static final int MAX_X_MARGIN = 10;
+    public static final int MAX_Y_MARGIN = 10;
 
     protected final int iconSize;
 
@@ -130,7 +132,10 @@ public abstract class AbstractBufferedImageIconPainterFactory implements IconPai
         }
 
         @Override
-        public IconPainter writeTextCentered(String text) {
+        public IconPainter writeTextCentered(String text, int xMargin, int yMargin) {
+            xMargin = Math.min(MAX_X_MARGIN, Math.max(0, xMargin));
+            yMargin = Math.min(MAX_Y_MARGIN, Math.max(0, yMargin));
+
             log.trace("Writing centered text: {}", text);
             //if text is null, nothing to print.
             if (text == null) {
@@ -142,6 +147,9 @@ public abstract class AbstractBufferedImageIconPainterFactory implements IconPai
             if (text.isEmpty()) {
                 return this;
             }
+
+            int iconWidth = iconSize - xMargin*2;
+            int iconHeight = iconSize - yMargin*2;
 
             //if text is multiline, lets split it, trimming each line, again, no point in printing invisible.
             //we're limiting multiline output to 10 lines. There is not point printing more lines, unless trying
@@ -161,21 +169,21 @@ public abstract class AbstractBufferedImageIconPainterFactory implements IconPai
             //some line to use to calculate text size. In case of single line, calculation will yield final position.
             String line = firstNonEmptyLine.get();
             //fraction of total icon size, reserved for each of N lines. In case of 1 line, this is trivially whole icon.
-            int lineHeight = iconSize / lineCount;
+            int lineHeight = iconHeight / lineCount;
             log.trace("Each line will be drawn into {} pixels of height", lineHeight);
 
             //find font producing biggest output which fits into icon.
-            DataToPrintMaximizedText dataToPrintMaximizedText = findMaxFontSizeForTextToFit(line, lineHeight);
+            DataToPrintMaximizedText dataToPrintMaximizedText = findMaxFontSizeForTextToFit(line, iconWidth, lineHeight);
 
             //set found maximal font.
             g2.setFont(dataToPrintMaximizedText.getFont());
 
             if (lineCount == 1) {
                 //we already have all what we need, just print the text.
-                int x = dataToPrintMaximizedText.getX();
-                int y = dataToPrintMaximizedText.getY();
+                int x = (iconWidth - dataToPrintMaximizedText.getWidth()) / 2;
+                int y = dataToPrintMaximizedText.getFm().getAscent() + (iconHeight - dataToPrintMaximizedText.getHeight()) / 2;
                 log.trace("Printing text {} at {}x{}", line, x, y);
-                g2.drawString(line, x, y);
+                g2.drawString(line, xMargin + x, yMargin + y);
             } else {
                 //here we have FontMetrics with set maximal font, but we need to recalculate size of each line — as we
                 //don't know which one we used to calculate size, we just know it was non-empty. In following loop
@@ -192,11 +200,11 @@ public abstract class AbstractBufferedImageIconPainterFactory implements IconPai
                     int ithLineWidth = roundUpAndTypecastToInt(bounds.getWidth());
                     int ithLineHeight = roundUpAndTypecastToInt(bounds.getHeight());
 
-                    int x = calculatePositionOfTextX(ithLineWidth);
+                    int x = (iconWidth - ithLineWidth) / 2;
 
                     int y = lineIndex * lineHeight + (fm.getAscent() + (lineHeight - ithLineHeight) / 2);
                     log.trace("{}-th line contains text {}, which will be printed at {}x{}", lineIndex, ithLine, x, y);
-                    g2.drawString(ithLine, x, y);
+                    g2.drawString(ithLine, xMargin + x, yMargin + y);
                 }
             }
 
@@ -211,7 +219,7 @@ public abstract class AbstractBufferedImageIconPainterFactory implements IconPai
 
         //--------------------------------------------------------------------
         //TODO MMUCHA: bounding box!
-        private DataToPrintMaximizedText findMaxFontSizeForTextToFit(String text, int lineHeight) {
+        private DataToPrintMaximizedText findMaxFontSizeForTextToFit(String text, int iconWidth, int lineHeight) {
             Font initialFont = g2.getFont();
             Font font = initialFont;
             int max = 0;
@@ -234,7 +242,7 @@ public abstract class AbstractBufferedImageIconPainterFactory implements IconPai
                 Rectangle2D bounds = fm.getStringBounds(text, g2);
                 width = roundUpAndTypecastToInt(bounds.getWidth());
                 height = roundUpAndTypecastToInt(bounds.getHeight());
-                boolean canFit = width < iconSize && height < lineHeight;
+                boolean canFit = width < iconWidth && height < lineHeight;
                 log.trace("Text \"{}\" {} fit into {}} when font size is {}", text, canFit ? "can" : "can't", lineHeight, currentFontSize);
                 if (!canFit) {
                     max = currentFontSize;
@@ -251,18 +259,7 @@ public abstract class AbstractBufferedImageIconPainterFactory implements IconPai
                 log.trace("Testing bounds of new size {} against [{}, {}]", newFontSize, min, max);
             } while((max == 0 || newFontSize < max) && (min == 0 || newFontSize > min));
 
-            return new DataToPrintMaximizedText(calculatePositionOfTextX(width),
-                    calculatePositionOfTextY(height, fm),
-                    font,
-                    fm);
-        }
-
-        private int calculatePositionOfTextY(int height, FontMetrics fm) {
-            return fm.getAscent() + (iconSize - height) / 2;
-        }
-
-        private int calculatePositionOfTextX(int width) {
-            return (iconSize - width) / 2;
+            return new DataToPrintMaximizedText(width, height, font, fm);
         }
 
         private int roundUpAndTypecastToInt(double value) {
@@ -272,22 +269,22 @@ public abstract class AbstractBufferedImageIconPainterFactory implements IconPai
         private static class DataToPrintMaximizedText {
             private final Font font;
             private final FontMetrics fm;
-            private final int x;
-            private final int y;
+            private final int width;
+            private final int height;
 
-            public DataToPrintMaximizedText(int x, int y, Font font, FontMetrics fm) {
+            public DataToPrintMaximizedText(int width, int height, Font font, FontMetrics fm) {
                 this.fm = fm;
-                this.x = x;
-                this.y = y;
+                this.width = width;
+                this.height = height;
                 this.font = font;
             }
 
-            public int getX() {
-                return x;
+            public int getWidth() {
+                return width;
             }
 
-            public int getY() {
-                return y;
+            public int getHeight() {
+                return height;
             }
 
             public Font getFont() {

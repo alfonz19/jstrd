@@ -6,12 +6,10 @@ import strd.lib.streamdeck.StreamDeck;
 import strd.lib.streamdeck.StreamDeckManager;
 import strd.lib.util.WaitUntilNotTerminated;
 
-import javax.sound.midi.Soundbank;
 import java.awt.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ServiceLoader;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
