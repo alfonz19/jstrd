@@ -30,8 +30,13 @@ public interface IconPainterFactory {
 //    IconPainter create(int pixelCountPerIconSide, URI uri);
 
     interface IconPainter {
-        IconPainter fillRect(int x1, int y1, int x2, int y2, int red, int green, int blue);
-        IconPainter drawRect(int x1, int y1, int x2, int y2, int red, int green, int blue);
+        IconPainter setColor(int red, int green, int blue);
+        IconPainter setFont(String name, int size);
+        IconPainter fillRect(int x1, int y1, int x2, int y2);
+        IconPainter drawRect(int x1, int y1, int x2, int y2);
+        IconPainter writeText(int x, int y, String text);
+        IconPainter writeTextCentered(String text);
+
         byte[] toDeviceNativeFormat();
     }
 
