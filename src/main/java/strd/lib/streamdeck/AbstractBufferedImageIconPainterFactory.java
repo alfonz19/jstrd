@@ -1,7 +1,5 @@
 package strd.lib.streamdeck;
 
-import strd.lib.StrdException;
-
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageWriteParam;
@@ -12,7 +10,11 @@ import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -127,34 +129,90 @@ public abstract class AbstractBufferedImageIconPainterFactory implements IconPai
             return this;
         }
 
-        support for multiline!
         @Override
         public IconPainter writeTextCentered(String text) {
-            Font initialFont = g2.getFont();
-
-            TextSizeFontAndBounds textSizeAndBounds = findMaxFontSizeForTextToFit(text, initialFont);
-            if (textSizeAndBounds == null) {
+            log.trace("Writing centered text: {}", text);
+            //if text is null, nothing to print.
+            if (text == null) {
                 return this;
             }
 
-            g2.setFont(textSizeAndBounds.getFont());
-            g2.drawString(text,
-                    (iconSize - textSizeAndBounds.getWidth()) / 2,
-                    textSizeAndBounds.getFm().getAscent() + (iconSize - textSizeAndBounds.getHeight()) / 2);
+            //if text is blank, again, nothing to print.
+            text = text.trim();
+            if (text.isEmpty()) {
+                return this;
+            }
+
+            //if text is multiline, lets split it, trimming each line, again, no point in printing invisible.
+            //we're limiting multiline output to 10 lines. There is not point printing more lines, unless trying
+            //to make this code fail.
+            List<String> lines = Arrays.stream(text.split("\n")).map(String::trim).limit(10).collect(Collectors.toList());
+            int lineCount = lines.size();
+            log.trace("Text will be split into {} lines.", lineCount);
+
+            //it seems, that all lines has same height regardless of what is written. So to find max height of line
+            //we can take any, nonempty one. In case there is single line only, we have guarantee, that it's not empty
+            //~it has some length. In case of multiple lines, there might be intermediate empty lines.
+            Optional<String> firstNonEmptyLine = lines.stream().filter(e -> e.length() > 0).findFirst();
+            if (firstNonEmptyLine.isEmpty()) {
+                return this;
+            }
+
+            //some line to use to calculate text size. In case of single line, calculation will yield final position.
+            String line = firstNonEmptyLine.get();
+            //fraction of total icon size, reserved for each of N lines. In case of 1 line, this is trivially whole icon.
+            int lineHeight = iconSize / lineCount;
+            log.trace("Each line will be drawn into {} pixels of height", lineHeight);
+
+            //find font producing biggest output which fits into icon.
+            DataToPrintMaximizedText dataToPrintMaximizedText = findMaxFontSizeForTextToFit(line, lineHeight);
+
+            //set found maximal font.
+            g2.setFont(dataToPrintMaximizedText.getFont());
+
+            if (lineCount == 1) {
+                //we already have all what we need, just print the text.
+                int x = dataToPrintMaximizedText.getX();
+                int y = dataToPrintMaximizedText.getY();
+                log.trace("Printing text {} at {}x{}", line, x, y);
+                g2.drawString(line, x, y);
+            } else {
+                //here we have FontMetrics with set maximal font, but we need to recalculate size of each line — as we
+                //don't know which one we used to calculate size, we just know it was non-empty. In following loop
+                //we will calculate bounds of each line and center it.
+                FontMetrics fm = dataToPrintMaximizedText.getFm();
+
+                for(int lineIndex = 0; lineIndex < lines.size(); lineIndex++) {
+                    String ithLine = lines.get(lineIndex);
+                    if (ithLine.isEmpty()) {
+                        log.trace("{}-th line is empty, skipping", lineIndex);
+                        continue;
+                    }
+                    Rectangle2D bounds = fm.getStringBounds(ithLine, g2);
+                    int ithLineWidth = roundUpAndTypecastToInt(bounds.getWidth());
+                    int ithLineHeight = roundUpAndTypecastToInt(bounds.getHeight());
+
+                    int x = calculatePositionOfTextX(ithLineWidth);
+
+                    int y = lineIndex * lineHeight + (fm.getAscent() + (lineHeight - ithLineHeight) / 2);
+                    log.trace("{}-th line contains text {}, which will be printed at {}x{}", lineIndex, ithLine, x, y);
+                    g2.drawString(ithLine, x, y);
+                }
+            }
 
             return this;
         }
 
-        private TextSizeFontAndBounds findMaxFontSizeForTextToFit(String text, Font initialFont) {
-            if (text == null) {
-                return null;
-            }
+        @Override
+        public final byte[] toDeviceNativeFormat() {
+            g2.dispose();
+            return toNativeImageCallback.apply(bi);
+        }
 
-            text = text.trim();
-            if (text.isEmpty()) {
-                return null;
-            }
-
+        //--------------------------------------------------------------------
+        //TODO MMUCHA: bounding box!
+        private DataToPrintMaximizedText findMaxFontSizeForTextToFit(String text, int lineHeight) {
+            Font initialFont = g2.getFont();
             Font font = initialFont;
             int max = 0;
             int min = 0;
@@ -176,8 +234,8 @@ public abstract class AbstractBufferedImageIconPainterFactory implements IconPai
                 Rectangle2D bounds = fm.getStringBounds(text, g2);
                 width = roundUpAndTypecastToInt(bounds.getWidth());
                 height = roundUpAndTypecastToInt(bounds.getHeight());
-                boolean canFit = width < iconSize && height < iconSize;
-                log.trace("Text \"{}\" {} fit into {}} when font size is {}", text, canFit ? "can" : "can't", iconSize, currentFontSize);
+                boolean canFit = width < iconSize && height < lineHeight;
+                log.trace("Text \"{}\" {} fit into {}} when font size is {}", text, canFit ? "can" : "can't", lineHeight, currentFontSize);
                 if (!canFit) {
                     max = currentFontSize;
                     newFontSize = min == 0 ? max / 2 : min + (max - min) / 2;
@@ -193,41 +251,43 @@ public abstract class AbstractBufferedImageIconPainterFactory implements IconPai
                 log.trace("Testing bounds of new size {} against [{}, {}]", newFontSize, min, max);
             } while((max == 0 || newFontSize < max) && (min == 0 || newFontSize > min));
 
-            return new TextSizeFontAndBounds(width, height, font, fm);
+            return new DataToPrintMaximizedText(calculatePositionOfTextX(width),
+                    calculatePositionOfTextY(height, fm),
+                    font,
+                    fm);
+        }
+
+        private int calculatePositionOfTextY(int height, FontMetrics fm) {
+            return fm.getAscent() + (iconSize - height) / 2;
+        }
+
+        private int calculatePositionOfTextX(int width) {
+            return (iconSize - width) / 2;
         }
 
         private int roundUpAndTypecastToInt(double value) {
             return Double.valueOf(Math.ceil(value)).intValue();
         }
 
-        @Override
-        public final byte[] toDeviceNativeFormat() {
-            g2.dispose();
-            return toNativeImageCallback.apply(bi);
-        }
-
-        private static class TextSizeFontAndBounds {
+        private static class DataToPrintMaximizedText {
             private final Font font;
             private final FontMetrics fm;
-            private final int width;
-            private final int height;
+            private final int x;
+            private final int y;
 
-            public TextSizeFontAndBounds(int width, int height, Font font, FontMetrics fm) {
+            public DataToPrintMaximizedText(int x, int y, Font font, FontMetrics fm) {
                 this.fm = fm;
-                if (width == 0 || height == 0) {
-                    throw new StrdException("coding error");
-                }
-                this.width = width;
-                this.height = height;
+                this.x = x;
+                this.y = y;
                 this.font = font;
             }
 
-            public int getWidth() {
-                return width;
+            public int getX() {
+                return x;
             }
 
-            public int getHeight() {
-                return height;
+            public int getY() {
+                return y;
             }
 
             public Font getFont() {

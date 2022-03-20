@@ -1,16 +1,17 @@
 package strd.lib.example;
 
+import strd.lib.hid.HidLibrary;
 import strd.lib.streamdeck.IconPainterFactory;
 import strd.lib.streamdeck.StreamDeck;
 import strd.lib.streamdeck.StreamDeckManager;
 import strd.lib.util.WaitUntilNotTerminated;
-import strd.lib.hid.HidLibrary;
 
+import javax.sound.midi.Soundbank;
 import java.awt.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ServiceLoader;
-import java.util.function.Supplier;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
@@ -72,69 +73,68 @@ public class LibMain {
                                                boolean buttonState) {
                     log.info("Button {} {}", buttonIndex, buttonState ? "pressed" : "released");
 
-                int keyCount = streamDeck.getStreamDeckInfo().getStreamDeckVariant().getKeyCount();
+                    int keyCount = streamDeck.getStreamDeckInfo().getStreamDeckVariant().getKeyCount();
 
-//                    COLORS ONLY
-//                    XOOOO
-//                    OOOOO
-//                    OOOOO
-                if (buttonIndex == 0) {
-                    colorsOnly(streamDeck);
-//                    COLORS AND TEXT
-//                    OXOOO
-//                    OOOOO
-//                    OOOOO
-                } else if (buttonIndex == 1) {
-                    colorsWithSingleLineText(streamDeck);
-//                    COLORS AND BASIC GRAPHICS
-//                    OOXOO
-//                    OOOOO
-//                    OOOOO
-                } else if (buttonIndex == 2) {
-                    colorsWithSomeGraphics(streamDeck);
-//                    COLORS AND MULTILINE TEXT
-//                    OOXOO
-//                    OOOOO
-//                    OOOOO
-                } else if (buttonIndex == 3) {
-                    colorsWithMultiLineText(streamDeck);
-//                    END
-//                    OOOOO
-//                    OOOOO
-//                    OOOOX
-                } else if (buttonIndex == keyCount - 1 && buttonState) {
-                        waitUntilNotTerminated.terminate();
-
-//                    RESET
-//                    OOOOO
-//                    OOOOO
-//                    OOOXO
-                    } else if (buttonIndex == keyCount - 2 && buttonState) {
-                        streamDeck.resetDevice();
-
-//                    BRIGHTNESS
-//                    OOOOO
-//                    XXXXX
-//                    OOOOO
+                    if (buttonIndex == 0) {
+                        //COLORS ONLY
+                        //XOOOO
+                        //OOOOO
+                        //OOOOO
+                        colorsOnly(streamDeck);
+                    } else if (buttonIndex == 1) {
+                        //COLORS AND TEXT
+                        //OXOOO
+                        //OOOOO
+                        //OOOOO
+                        colorsWithSingleLineText(streamDeck);
+                    } else if (buttonIndex == 2) {
+                        //COLORS AND BASIC GRAPHICS
+                        //OOXOO
+                        //OOOOO
+                        //OOOOO
+                        colorsWithSomeGraphics(streamDeck);
+                    } else if (buttonIndex == 3) {
+                        //COLORS AND MULTILINE TEXT
+                        //OOXOO
+                        //OOOOO
+                        //OOOOO
+                        colorsWithMultiLineText(streamDeck);
                     } else if (buttonIndex >= 5 && buttonIndex <= 9) {
-                        streamDeck.setBrightness((buttonIndex - 4)*20);
+                        //BRIGHTNESS
+                        //OOOOO
+                        //XXXXX
+                        //OOOOO
+                        streamDeck.setBrightness((buttonIndex - 4) * 20);
 
-//                    SCREEN OFF
-//                    OOOOO
-//                    OOOOO
-//                    XOOOO
                     } else if (buttonIndex == 10) {
+                        //SCREEN OFF
+                        //OOOOO
+                        //OOOOO
+                        //XOOOO
                         streamDeck.screenOff();
 
-//                    SCREEN ON
-//                    OOOOO
-//                    OOOOO
-//                    OXOOO
                     } else if (buttonIndex == 11) {
+                        //SCREEN ON
+                        //OOOOO
+                        //OOOOO
+                        //OXOOO
                         streamDeck.screenOn();
+                    } else if (buttonIndex == keyCount - 2 && buttonState) {
+                        //RESET
+                        //OOOOO
+                        //OOOOO
+                        //OOOXO
+                        streamDeck.resetDevice();
+
+                    } else if (buttonIndex == keyCount - 1 && buttonState) {
+                        //END
+                        //OOOOO
+                        //OOOOO
+                        //OOOOX
+                        waitUntilNotTerminated.terminate();
                     }
-                }
-            });
+
+                }});
 
 //            System.out.println("StreamDeck serial version(A): "+streamDeck.getStreamDeckInfo().getSerialNumberString());
 //            System.out.println("StreamDeck serial version(B): "+streamDeck.getSerialNumber());
@@ -185,10 +185,12 @@ public class LibMain {
 
             char c = (char) ('A' + (byte) index);
             int maxLines = 5;
-            String multilineText = IntStream.range(0, index % maxLines)
-                    .map(i -> c)
+            String multilineText = IntStream.rangeClosed(0, index % maxLines)
                     .boxed()
-                    .map(Object::toString)
+                    .map(ii->IntStream.rangeClosed(0, ii % maxLines)
+                            .boxed()
+                            .map(f->Character.valueOf(c).toString())
+                            .collect(Collectors.joining()))
                     .collect(Collectors.joining("\n"));
 
             byte[] buttonImage = iconPainter.create(color.getRed(), color.getGreen(), color.getBlue())
