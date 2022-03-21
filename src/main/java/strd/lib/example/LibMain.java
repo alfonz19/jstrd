@@ -185,6 +185,7 @@ public class LibMain {
 
             byte[] buttonImage = iconPainter.create(color.getRed(), color.getGreen(), color.getBlue())
                     .setColor(0, 0, 0)
+                    .setFont(null, 16, IconPainterFactory.IconPainter.FontStyle.BOLD_ITALIC)
                     .writeTextCentered(buttonText)
                     .toDeviceNativeFormat();
             streamDeck.setButtonImage((byte) index, buttonImage);

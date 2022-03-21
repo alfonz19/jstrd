@@ -115,8 +115,11 @@ public abstract class AbstractBufferedImageIconPainterFactory implements IconPai
         }
 
         @Override
-        public IconPainter setFont(String name, int size) {
-            Font font = new Font(/*"Serif"*/null, Font.PLAIN, size);
+        public IconPainter setFont(String name,
+                                   int size,
+                                   FontStyle fontStyle) {
+            //noinspection MagicConstant
+            Font font = new Font(/*"Serif"*/null, fontStyle.getAwtStyleConstant(), size);
             g2.setFont(font);
             return this;
         }
