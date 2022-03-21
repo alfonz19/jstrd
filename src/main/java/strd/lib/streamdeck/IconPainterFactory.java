@@ -12,16 +12,18 @@ public interface IconPainterFactory {
     interface IconPainter {
         IconPainter setColor(int red, int green, int blue);
         IconPainter setFont(String name, int size);
-        IconPainter fillRect(int x1, int y1, int x2, int y2);
         IconPainter drawRect(int x1, int y1, int x2, int y2);
+        IconPainter fillRect(int x1, int y1, int x2, int y2);
+        IconPainter drawOval(int x, int y, int width, int height);
+        IconPainter fillOval(int x, int y, int width, int height);
+        IconPainter drawPolygon(int[] xPoints, int[] yPoints, int nPoints);
+        IconPainter fillPolygon(int[] xPoints, int[] yPoints, int nPoints);
         IconPainter writeText(int x, int y, String text);
-
+        IconPainter writeTextCentered(String text, int xMargin, int yMargin);
 
         default IconPainter writeTextCentered(String text) {
             return writeTextCentered(text, 0, 0);
         }
-
-        IconPainter writeTextCentered(String text, int xmargin, int yMargin);
 
         byte[] toDeviceNativeFormat();
     }

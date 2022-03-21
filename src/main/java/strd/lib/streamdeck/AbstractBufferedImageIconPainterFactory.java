@@ -134,6 +134,29 @@ public abstract class AbstractBufferedImageIconPainterFactory implements IconPai
             return this;
         }
 
+        public IconPainter fillOval(int x, int y, int width, int height) {
+            g2.fillOval(x, y, width, height);
+            return this;
+        }
+
+        @Override
+        public IconPainter drawOval(int x, int y, int width, int height) {
+            g2.drawOval(x, y, width, height);
+            return this;
+        }
+
+        @Override
+        public IconPainter fillPolygon(int[] xPoints, int[] yPoints, int nPoints) {
+            g2.fillPolygon(xPoints, yPoints, nPoints);
+            return this;
+        }
+
+        @Override
+        public IconPainter drawPolygon(int[] xPoints, int[] yPoints, int nPoints) {
+            g2.drawPolygon(xPoints, yPoints, nPoints);
+            return this;
+        }
+
         @Override
         public IconPainter writeText(int x, int y, String text) {
 
@@ -251,8 +274,8 @@ public abstract class AbstractBufferedImageIconPainterFactory implements IconPai
                 int min = 0;
                 int iteration = 0;
                 int newFontSize;
-                int width = 0;
-                int height = 0;
+                int width;
+                int height;
 
                 ResultData result = new ResultData();
 
