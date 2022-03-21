@@ -1,9 +1,11 @@
 package strd.lib.example;
 
+import strd.lib.StrdException;
 import strd.lib.hid.HidLibrary;
 import strd.lib.streamdeck.IconPainterFactory;
 import strd.lib.streamdeck.StreamDeck;
 import strd.lib.streamdeck.StreamDeckManager;
+import strd.lib.streamdeck.StreamDeckVariant;
 import strd.lib.util.WaitUntilNotTerminated;
 
 import java.awt.*;
@@ -17,6 +19,7 @@ import java.util.stream.StreamSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+//TODO MMUCHA: should not be part of lib.
 public class LibMain {
     public static final List<Color> COLORS_FOR_BUTTONS = Arrays.asList(Color.RED,
             Color.GREEN,
@@ -30,6 +33,20 @@ public class LibMain {
 
     public static void main(String[] args) {
         new LibMain().run();
+    }
+
+    private IconPainterFactory findIconPainter(StreamDeck streamDeck) {
+        return findIconPainter(streamDeck.getStreamDeckInfo().getStreamDeckVariant());
+    }
+
+    private IconPainterFactory findIconPainter(StreamDeckVariant streamDeckVariant) {
+        ServiceLoader<IconPainterFactory> factories = ServiceLoader.load(IconPainterFactory.class);
+        return factories.stream()
+                .map(ServiceLoader.Provider::get)
+                .filter(e -> e.canProcessStreamDeckVariant(streamDeckVariant))
+                .findFirst()
+                .orElseThrow(() -> new StrdException("Cannot find IconPainter for stream deck variant " +
+                        streamDeckVariant));
     }
 
     private void run() {
@@ -146,7 +163,7 @@ public class LibMain {
     }
 
     public void colorsOnly(StreamDeck streamDeck) {
-        IconPainterFactory iconPainter = IconPainterFactory.findIconPainter(streamDeck);
+        IconPainterFactory iconPainter = findIconPainter(streamDeck);
 
         IntStream.range(0, streamDeck.getStreamDeckInfo().getStreamDeckVariant().getKeyCount()).forEach(index -> {
             Color color = COLORS_FOR_BUTTONS.get(index % COLORS_FOR_BUTTONS.size());
@@ -156,7 +173,7 @@ public class LibMain {
     }
 
     public void colorsWithSingleLineText(StreamDeck streamDeck) {
-        IconPainterFactory iconPainter = IconPainterFactory.findIconPainter(streamDeck);
+        IconPainterFactory iconPainter = findIconPainter(streamDeck);
 
         IntStream.range(0, streamDeck.getStreamDeckInfo().getStreamDeckVariant().getKeyCount()).forEach(index -> {
             Color color = COLORS_FOR_BUTTONS.get(index % COLORS_FOR_BUTTONS.size());
@@ -176,7 +193,7 @@ public class LibMain {
     }
 
     public void colorsWithMultiLineText(StreamDeck streamDeck) {
-        IconPainterFactory iconPainter = IconPainterFactory.findIconPainter(streamDeck);
+        IconPainterFactory iconPainter = findIconPainter(streamDeck);
 
         IntStream.range(0, streamDeck.getStreamDeckInfo().getStreamDeckVariant().getKeyCount()).forEach(index -> {
             Color color = COLORS_FOR_BUTTONS.get(index % COLORS_FOR_BUTTONS.size());
@@ -201,7 +218,7 @@ public class LibMain {
     }
 
     public void colorsWithSomeGraphics(StreamDeck streamDeck) {
-        IconPainterFactory iconPainter = IconPainterFactory.findIconPainter(streamDeck);
+        IconPainterFactory iconPainter = findIconPainter(streamDeck);
 
         IntStream.range(0, streamDeck.getStreamDeckInfo().getStreamDeckVariant().getKeyCount()).forEach(index -> {
             Color color = COLORS_FOR_BUTTONS.get(index % COLORS_FOR_BUTTONS.size());
