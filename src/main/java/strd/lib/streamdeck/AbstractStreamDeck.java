@@ -95,7 +95,12 @@ public abstract class AbstractStreamDeck implements StreamDeck {
     }
 
     /**
-     * This complexity is here in place for single reason: fear. I can see java thread creation in HID library source,
+     * This complexity is here in place for 2 reasons: a) this whole library is NOT thread safe. b) fear.
+     *
+     * ad A: so if we have multiple events in quick succession there might be concurrency issues. Serializing incoming
+     * events into single thread is easier/more performant than locking.
+     *
+     * ad B: I can see java thread creation in HID library source,
      * but the thread name is really suspicious and I don't see that name assigned anywhere. Better be safe than sorry,
      * I will assume, that this is called from some non-java thread, some operating system thread. Probably incorrect,
      * yet fixing it is easy. So...
