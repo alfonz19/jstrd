@@ -183,23 +183,24 @@ public abstract class AbstractBufferedImageIconPainterFactory implements IconPai
             int lineHeight = iconHeight / lineCount;
             log.trace("Each line will be drawn into {} pixels of height", lineHeight);
 
-            //find font producing biggest output which fits into icon.
-            DataToPrintMaximizedText dataToPrintMaximizedText = findMaxFontSizeForTextToFit(line, iconWidth, lineHeight);
+            //find font producing the biggest output which fits into icon.
+            FindMaxFontSize.ResultData maximizedTextSpecs =
+                    FindMaxFontSize.findMaxFontSizeForTextToFit(this.g2, line, iconWidth, lineHeight);
 
             //set found maximal font.
-            g2.setFont(dataToPrintMaximizedText.getFont());
+            g2.setFont(maximizedTextSpecs.getFont());
 
             if (lineCount == 1) {
                 //we already have all what we need, just print the text.
-                int x = (iconWidth - dataToPrintMaximizedText.getWidth()) / 2;
-                int y = dataToPrintMaximizedText.getFm().getAscent() + (iconHeight - dataToPrintMaximizedText.getHeight()) / 2;
+                int x = (iconWidth - maximizedTextSpecs.getWidth()) / 2;
+                int y = maximizedTextSpecs.getFm().getAscent() + (iconHeight - maximizedTextSpecs.getHeight()) / 2;
                 log.trace("Printing text {} at {}x{}", line, x, y);
                 g2.drawString(line, xMargin + x, yMargin + y);
             } else {
                 //here we have FontMetrics with set maximal font, but we need to recalculate size of each line — as we
                 //don't know which one we used to calculate size, we just know it was non-empty. In following loop
                 //we will calculate bounds of each line and center it.
-                FontMetrics fm = dataToPrintMaximizedText.getFm();
+                FontMetrics fm = maximizedTextSpecs.getFm();
 
                 for(int lineIndex = 0; lineIndex < lines.size(); lineIndex++) {
                     String ithLine = lines.get(lineIndex);
@@ -208,8 +209,8 @@ public abstract class AbstractBufferedImageIconPainterFactory implements IconPai
                         continue;
                     }
                     Rectangle2D bounds = fm.getStringBounds(ithLine, g2);
-                    int ithLineWidth = roundUpAndTypecastToInt(bounds.getWidth());
-                    int ithLineHeight = roundUpAndTypecastToInt(bounds.getHeight());
+                    int ithLineWidth = FindMaxFontSize.roundUpAndTypecastToInt(bounds.getWidth());
+                    int ithLineHeight = FindMaxFontSize.roundUpAndTypecastToInt(bounds.getHeight());
 
                     int x = (iconWidth - ithLineWidth) / 2;
 
@@ -234,80 +235,94 @@ public abstract class AbstractBufferedImageIconPainterFactory implements IconPai
             return toNativeImageCallback.apply(bi);
         }
 
-        private DataToPrintMaximizedText findMaxFontSizeForTextToFit(String text, int iconWidth, int lineHeight) {
-            Font initialFont = g2.getFont();
-            Font font = initialFont;
-            int max = 0;
-            int min = 0;
-            int iteration = 0;
-            int newFontSize;
-            int width = 0;
-            int height = 0;
-            FontMetrics fm = null;
 
-            do {
-                if (iteration++ > 15) {
-                    log.error("Poor coding, probable infinite loop. You should get your stuff together, man.");
-                    break;
-                }
-                int currentFontSize = font.getSize();
-                log.trace("Testing font size: {}",currentFontSize);
+        //TODO MMUCHA: This class is not nice to look at. It's in this shape to avoid instantiations. Premature optimization, fix.
 
-                fm = g2.getFontMetrics(font);
-                Rectangle2D bounds = fm.getStringBounds(text, g2);
-                width = roundUpAndTypecastToInt(bounds.getWidth());
-                height = roundUpAndTypecastToInt(bounds.getHeight());
-                boolean canFit = width < iconWidth && height < lineHeight;
-                log.trace("Text \"{}\" {} fit into {}} when font size is {}", text, canFit ? "can" : "can't", lineHeight, currentFontSize);
-                if (!canFit) {
-                    max = currentFontSize;
-                    newFontSize = min == 0 ? max / 2 : min + (max - min) / 2;
+        private static class FindMaxFontSize {
 
-                    log.trace("\t --> trying with smaller font: {}", newFontSize);
+            private static ResultData findMaxFontSizeForTextToFit(Graphics2D g2,
+                                                                  String text,
+                                                                  int iconWidth,
+                                                                  int lineHeight) {
+                Font initialFont = g2.getFont();
+                Font font = initialFont;
+                FontMetrics fm;
+                int max = 0;
+                int min = 0;
+                int iteration = 0;
+                int newFontSize;
+                int width = 0;
+                int height = 0;
+
+                ResultData result = new ResultData();
+
+                do {
+                    if (iteration++ > 15) {
+                        log.error("Poor coding, probable infinite loop. You should get your stuff together, man.");
+                        break;
+                    }
+                    int currentFontSize = font.getSize();
+                    log.trace("Testing font size: {}",currentFontSize);
+
+                    fm = g2.getFontMetrics(font);
+                    Rectangle2D bounds = fm.getStringBounds(text, g2);
+                    width = roundUpAndTypecastToInt(bounds.getWidth());
+                    height = roundUpAndTypecastToInt(bounds.getHeight());
+                    boolean canFit = width < iconWidth && height < lineHeight;
+                    log.trace("Text \"{}\" {} fit into {}} when font size is {}", text, canFit ? "can" : "can't", lineHeight, currentFontSize);
+
+                    if (!canFit) {
+                        max = currentFontSize;
+                        newFontSize = min == 0 ? max / 2 : min + (max - min) / 2;
+
+                        log.trace("\t --> trying with smaller font: {}", newFontSize);
+                    } else {
+                        result.set(width, height, font, fm);
+                        min = currentFontSize;
+                        newFontSize = max == 0 ? 2*min : min+(max - min) / 2;
+                        log.trace("\t --> trying with bigger font: {}", newFontSize);
+                    }
+
                     font = new Font(initialFont.getName(), initialFont.getStyle(), newFontSize);
-                } else {
-                    min = currentFontSize;
-                    newFontSize = max == 0 ? 2*min : min+(max - min) / 2;
-                    log.trace("\t --> trying with bigger font: {}", newFontSize);
-                    font = new Font(initialFont.getName(), initialFont.getStyle(), newFontSize);
+                    log.trace("Testing bounds of new size {} against [{}, {}]", newFontSize, min, max);
+                } while((max == 0 || newFontSize < max) && (min == 0 || newFontSize > min));
+
+                log.trace("Found maximum with bounding box {}x{}", result.getWidth(), result.getHeight());
+                return result;
+            }
+
+            private static int roundUpAndTypecastToInt(double value) {
+                return Double.valueOf(Math.ceil(value)).intValue();
+            }
+
+            private static class ResultData {
+                private Font font;
+                private FontMetrics fm;
+                private int width;
+                private int height;
+
+                public int getWidth() {
+                    return width;
                 }
-                log.trace("Testing bounds of new size {} against [{}, {}]", newFontSize, min, max);
-            } while((max == 0 || newFontSize < max) && (min == 0 || newFontSize > min));
 
-            return new DataToPrintMaximizedText(width, height, font, fm);
-        }
+                public int getHeight() {
+                    return height;
+                }
 
-        private int roundUpAndTypecastToInt(double value) {
-            return Double.valueOf(Math.ceil(value)).intValue();
-        }
+                public Font getFont() {
+                    return font;
+                }
 
-        private static class DataToPrintMaximizedText {
-            private final Font font;
-            private final FontMetrics fm;
-            private final int width;
-            private final int height;
+                public FontMetrics getFm() {
+                    return fm;
+                }
 
-            public DataToPrintMaximizedText(int width, int height, Font font, FontMetrics fm) {
-                this.fm = fm;
-                this.width = width;
-                this.height = height;
-                this.font = font;
-            }
-
-            public int getWidth() {
-                return width;
-            }
-
-            public int getHeight() {
-                return height;
-            }
-
-            public Font getFont() {
-                return font;
-            }
-
-            public FontMetrics getFm() {
-                return fm;
+                private void set(int width, int height, Font font, FontMetrics fm) {
+                    this.width = width;
+                    this.height = height;
+                    this.font = font;
+                    this.fm = fm;
+                }
             }
         }
 
