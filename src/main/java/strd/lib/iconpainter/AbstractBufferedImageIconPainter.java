@@ -12,6 +12,7 @@ import javax.imageio.stream.MemoryCacheImageOutputStream;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,6 +48,10 @@ public abstract class AbstractBufferedImageIconPainter implements IconPainter {
 
     protected AbstractBufferedImageIconPainter(int iconSize, InputStream imageByteStream) {
         this(iconSize, readImageFromStream(imageByteStream));
+    }
+
+    public AbstractBufferedImageIconPainter(int iconSize, byte[] bytes) {
+        this(iconSize, readImageFromStream(new ByteArrayInputStream(bytes)));
     }
 
     private static BufferedImage readImageFromStream(InputStream imageByteStream) {

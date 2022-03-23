@@ -12,6 +12,10 @@ public class BufferedImageIconPainterForStreamDeckMk2 extends AbstractBufferedIm
         super(iconSize, imageByteStream);
     }
 
+    public BufferedImageIconPainterForStreamDeckMk2(int iconSize, byte[] bytes) {
+        super(iconSize, bytes);
+    }
+
     @Override
     protected byte[] toDeviceNativeFormatTransformation() {
         return writeJpgWithMaxQuality(flipHorizontallyAndVertically(bi));

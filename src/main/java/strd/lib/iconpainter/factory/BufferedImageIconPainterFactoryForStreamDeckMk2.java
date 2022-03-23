@@ -23,6 +23,11 @@ public class BufferedImageIconPainterFactoryForStreamDeckMk2 extends AbstractBuf
         return new BufferedImageIconPainterForStreamDeckMk2(getIconSize(streamDeck), imageByteStream);
     }
 
+    @Override
+    public IconPainter create(StreamDeck streamDeck, byte[] bytes) {
+        return new BufferedImageIconPainterForStreamDeckMk2(getIconSize(streamDeck), bytes);
+    }
+
     private int getIconSize(StreamDeck streamDeck) {
         return streamDeck.getStreamDeckInfo().getStreamDeckVariant().getPixelCountPerIconSide();
     }

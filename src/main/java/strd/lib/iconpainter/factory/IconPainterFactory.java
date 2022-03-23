@@ -10,4 +10,5 @@ public interface IconPainterFactory {
     boolean canProcessStreamDeckVariant(StreamDeckVariant streamDeckVariant);
     IconPainter create(StreamDeck streamDeck);
     IconPainter create(StreamDeck streamDeck, InputStream imageByteStream);
+    IconPainter create(StreamDeck streamDeck, byte[] bytes);
 }

@@ -1,5 +1,9 @@
 package strd.lib.example;
 
+import alf.Main;
+import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Schedulers;
+import reactor.util.function.Tuples;
 import strd.lib.StrdException;
 import strd.lib.hid.HidLibrary;
 import strd.lib.iconpainter.IconPainter;
@@ -10,9 +14,16 @@ import strd.lib.streamdeck.StreamDeckVariant;
 import strd.lib.util.WaitUntilNotTerminated;
 
 import java.awt.*;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ServiceLoader;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
@@ -88,6 +99,10 @@ public class LibMain {
                                                int buttonIndex,
                                                boolean buttonState) {
                     log.info("Button {} {}", buttonIndex, buttonState ? "pressed" : "released");
+                    if (!buttonState) {
+//                        do not paint upon release
+                        return;
+                    }
 
                     int keyCount = streamDeck.getStreamDeckInfo().getStreamDeckVariant().getKeyCount();
 
@@ -111,10 +126,16 @@ public class LibMain {
                         colorsWithSomeGraphics(streamDeck);
                     } else if (buttonIndex == 3) {
                         //COLORS AND MULTILINE TEXT
-                        //OOXOO
+                        //OOOXO
                         //OOOOO
                         //OOOOO
                         colorsWithMultiLineText(streamDeck);
+                    } else if (buttonIndex == 4) {
+                        //images
+                        //OOOXO
+                        //OOOOO
+                        //OOOOO
+                        someImages2(streamDeck);
                     } else if (buttonIndex >= 5 && buttonIndex <= 9) {
                         //BRIGHTNESS
                         //OOOOO
@@ -135,14 +156,20 @@ public class LibMain {
                         //OOOOO
                         //OXOOO
                         streamDeck.screenOn();
-                    } else if (buttonIndex == keyCount - 2 && buttonState) {
+                    } else if (buttonIndex == 12) {
+                        //some images2
+                        //OOOOO
+                        //OOOOO
+                        //OOXOO
+                        someImages2(streamDeck);
+                    } else if (buttonIndex == 13) {
                         //RESET
                         //OOOOO
                         //OOOOO
                         //OOOXO
                         streamDeck.resetDevice();
 
-                    } else if (buttonIndex == keyCount - 1 && buttonState) {
+                    } else if (buttonIndex == 14) {
                         //END
                         //OOOOO
                         //OOOOO
@@ -221,6 +248,90 @@ public class LibMain {
             streamDeck.setButtonImage((byte) index, buttonImage);
 
         });
+    }
+
+    public void someImages(StreamDeck streamDeck) {
+        IconPainterFactory iconPainterFactory = findIconPainter(streamDeck);
+        byte[] bytes = readPhotoFromFile("/magda.jpg");
+
+        AtomicLong totalImagePreparationTime = new AtomicLong(0);
+        AtomicLong totalSettingTime = new AtomicLong(0);
+
+        IntStream.range(0, streamDeck.getStreamDeckInfo().getStreamDeckVariant().getKeyCount()).forEach(index -> {
+            long start = System.nanoTime();
+            byte[] buttonImage = iconPainterFactory.create(streamDeck, bytes).toDeviceNativeFormat();
+            long imageCreationTime = System.nanoTime();
+            streamDeck.setButtonImage((byte)index, buttonImage);
+            long end = System.nanoTime();
+
+            long imagePreparationTime = TimeUnit.NANOSECONDS.toMillis(imageCreationTime - start);
+            long settingTime = TimeUnit.NANOSECONDS.toMicros(end - imageCreationTime);
+            log.debug("Total button painting time: {}ms, image={}ms, setting={}us", TimeUnit.NANOSECONDS.toMillis(end-start),
+                    imagePreparationTime,
+                    settingTime);
+
+            totalImagePreparationTime.addAndGet(imagePreparationTime);
+            totalSettingTime.addAndGet(settingTime);
+        });
+
+        log.info("All buttons painting time: {}ms, image={}ms, setting={}ms", totalImagePreparationTime.get()+totalSettingTime.get()/1000,
+                totalImagePreparationTime.get(),
+                totalSettingTime.get()/1000);
+
+    }
+
+    public void someImages2(StreamDeck streamDeck) {
+        IconPainterFactory iconPainterFactory = findIconPainter(streamDeck);
+        byte[] imageBytes = readPhotoFromFile("/magda.jpg");
+        byte[] bytes = iconPainterFactory.create(streamDeck, imageBytes).toDeviceNativeFormat();
+
+
+        long start = System.nanoTime();
+        IntStream.range(0, streamDeck.getStreamDeckInfo().getStreamDeckVariant().getKeyCount()).forEach(index -> {
+            streamDeck.setButtonImage((byte)index, bytes);
+        });
+        long end = System.nanoTime();
+
+        log.info("All buttons painted in {}ms", TimeUnit.NANOSECONDS.toMicros(end-start));
+
+    }
+
+    public void someImagesParallel(StreamDeck streamDeck) {
+        IconPainterFactory iconPainterFactory = findIconPainter(streamDeck);
+        byte[] bytes = readPhotoFromFile("/magda.jpg");
+
+        long start = System.nanoTime();
+        Flux.range(0, streamDeck.getStreamDeckInfo().getStreamDeckVariant().getKeyCount())
+                .publishOn(Schedulers.newParallel("img", 15, true))
+                .doOnNext(e->log.debug("calculating on thread {}", Thread.currentThread().getName()))
+                .map(index -> {
+                    byte[] bytes1 = iconPainterFactory.create(streamDeck, bytes).toDeviceNativeFormat();
+                    return Tuples.of(index, bytes1);
+                })
+                .publishOn(Schedulers.single())
+                .doOnNext(e->log.debug("setting on thread {}", Thread.currentThread().getName()))
+                .subscribe(tuple -> streamDeck.setButtonImage(tuple.getT1(), tuple.getT2()), e -> {}, () -> {
+                    long end = System.nanoTime();
+                    log.info("Total time: {}ms", TimeUnit.NANOSECONDS.toMillis(end-start));
+                });
+    }
+
+    private byte[] readPhotoFromFile(String name) {
+        try (InputStream resourceAsStream = Main.class.getResourceAsStream(name)) {
+            if (resourceAsStream == null) {
+                return null;
+            }
+
+            try (BufferedInputStream bis = new BufferedInputStream(resourceAsStream);
+                 ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+
+                bos.write(bis.readAllBytes());
+                return bos.toByteArray();
+            }
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void colorsWithSomeGraphics(StreamDeck streamDeck) {
