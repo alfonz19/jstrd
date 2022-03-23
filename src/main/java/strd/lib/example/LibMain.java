@@ -2,7 +2,8 @@ package strd.lib.example;
 
 import strd.lib.StrdException;
 import strd.lib.hid.HidLibrary;
-import strd.lib.streamdeck.IconPainterFactory;
+import strd.lib.iconpainter.IconPainter;
+import strd.lib.iconpainter.factory.IconPainterFactory;
 import strd.lib.streamdeck.StreamDeck;
 import strd.lib.streamdeck.StreamDeckManager;
 import strd.lib.streamdeck.StreamDeckVariant;
@@ -167,7 +168,9 @@ public class LibMain {
 
         IntStream.range(0, streamDeck.getStreamDeckInfo().getStreamDeckVariant().getKeyCount()).forEach(index -> {
             Color color = COLORS_FOR_BUTTONS.get(index % COLORS_FOR_BUTTONS.size());
-            byte[] buttonImage = iconPainter.create(color.getRed(), color.getGreen(), color.getBlue()).toDeviceNativeFormat();
+            byte[] buttonImage = iconPainter.create(streamDeck)
+                    .fillWholeIcon(color.getRed(), color.getGreen(), color.getBlue())
+                    .toDeviceNativeFormat();
             streamDeck.setButtonImage((byte)index, buttonImage);
         });
     }
@@ -183,9 +186,10 @@ public class LibMain {
             Arrays.fill(chars, c);
             String buttonText = new String(chars);
 
-            byte[] buttonImage = iconPainter.create(color.getRed(), color.getGreen(), color.getBlue())
+            byte[] buttonImage = iconPainter.create(streamDeck)
+                    .fillWholeIcon(color.getRed(), color.getGreen(), color.getBlue())
                     .setColor(0, 0, 0)
-                    .setFont(null, 16, IconPainterFactory.IconPainter.FontStyle.BOLD_ITALIC)
+                    .setFont(null, 16, IconPainter.FontStyle.BOLD_ITALIC)
                     .writeTextCentered(buttonText)
                     .toDeviceNativeFormat();
             streamDeck.setButtonImage((byte) index, buttonImage);
@@ -209,7 +213,8 @@ public class LibMain {
                             .collect(Collectors.joining()))
                     .collect(Collectors.joining("\n"));
 
-            byte[] buttonImage = iconPainter.create(color.getRed(), color.getGreen(), color.getBlue())
+            byte[] buttonImage = iconPainter.create(streamDeck)
+                    .fillWholeIcon(color.getRed(), color.getGreen(), color.getBlue())
                     .setColor(0, 0, 0)
                     .writeTextCentered(multilineText)
                     .toDeviceNativeFormat();
@@ -229,7 +234,8 @@ public class LibMain {
             int xy2 = xy1 * 2;
 
 
-            byte[] buttonImage = iconPainter.create(color.getRed(), color.getGreen(), color.getBlue())
+            byte[] buttonImage = iconPainter.create(streamDeck)
+                    .fillWholeIcon(color.getRed(), color.getGreen(), color.getBlue())
                     .setColor(255, 255, 255)
                     .fillRect(xy1, xy1, xy2, xy2)
                     .toDeviceNativeFormat();
