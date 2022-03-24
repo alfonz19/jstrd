@@ -264,7 +264,6 @@ public abstract class AbstractBufferedImageIconPainter implements IconPainter {
         }
     }
 
-    //TODO MMUCHA: This class is not nice to look at. It's in this shape to avoid instantiations. Premature optimization, fix.
     private static class FindMaxFontSize {
 
         private static FindMaxFontSize.ResultData findMaxFontSizeForTextToFit(Graphics2D g2,
@@ -273,29 +272,24 @@ public abstract class AbstractBufferedImageIconPainter implements IconPainter {
                                                                               int lineHeight) {
             Font initialFont = g2.getFont();
             Font font = initialFont;
-            FontMetrics fm;
             int max = 0;
             int min = 0;
             int iteration = 0;
-            int newFontSize;
-            int width;
-            int height;
 
-            FindMaxFontSize.ResultData result = new FindMaxFontSize.ResultData();
+            FindMaxFontSize.ResultData result = null;
 
             do {
                 if (iteration++ > 15) {
-                    log.error(
-                            "Poor coding, probable infinite loop. You should get your stuff together, man.");
+                    log.error("Poor coding, probable infinite loop. You should get your stuff together, man.");
                     break;
                 }
                 int currentFontSize = font.getSize();
                 log.trace("Testing font size: {}", currentFontSize);
 
-                fm = g2.getFontMetrics(font);
+                FontMetrics fm = g2.getFontMetrics(font);
                 Rectangle2D bounds = fm.getStringBounds(text, g2);
-                width = roundUpAndTypecastToInt(bounds.getWidth());
-                height = roundUpAndTypecastToInt(bounds.getHeight());
+                int width = roundUpAndTypecastToInt(bounds.getWidth());
+                int height = roundUpAndTypecastToInt(bounds.getHeight());
                 boolean canFit = width < iconWidth && height < lineHeight;
                 log.trace("Text \"{}\" {} fit into {}} when font size is {}",
                         text,
@@ -305,28 +299,27 @@ public abstract class AbstractBufferedImageIconPainter implements IconPainter {
 
                 if (!canFit) {
                     max = currentFontSize;
-                    newFontSize = min == 0 ? max / 2 : min + (max - min) / 2;
+                    int newFontSize = min == 0 ? max / 2 : min + (max - min) / 2;
 
-                    log.trace("\t --> trying with smaller font: {}",
-                            newFontSize);
+                    log.trace("\t --> trying with smaller font: {}", newFontSize);
+                    font = new Font(initialFont.getName(), initialFont.getStyle(), newFontSize);
                 } else {
-                    result.set(width, height, font, fm);
+                    result = new FindMaxFontSize.ResultData(width, height, font, fm);
                     min = currentFontSize;
-                    newFontSize = max == 0 ? 2 * min : min + (max - min) / 2;
+                    int newFontSize = max == 0 ? 2 * min : min + (max - min) / 2;
                     log.trace("\t --> trying with bigger font: {}",
                             newFontSize);
+                    font = new Font(initialFont.getName(), initialFont.getStyle(), newFontSize);
                 }
 
-                font = new Font(initialFont.getName(), initialFont.getStyle(), newFontSize);
-                log.trace("Testing bounds of new size {} against [{}, {}]",
-                        newFontSize,
-                        min,
-                        max);
-            } while ((max == 0 || newFontSize < max) && (min == 0 || newFontSize > min));
+                log.trace("Testing bounds of new size {} against [{}, {}]", font.getSize(), min, max);
+            } while ((max == 0 || font.getSize() < max) && (min == 0 || font.getSize() > min));
 
-            log.trace("Found maximum with bounding box {}x{}",
-                    result.getWidth(),
-                    result.getHeight());
+            result = result == null
+                    ? new ResultData(0, 0, initialFont, g2.getFontMetrics(initialFont))
+                    : result;
+
+            log.trace("Found maximum with bounding box {}x{}", result.getWidth(), result.getHeight());
             return result;
         }
 
@@ -335,10 +328,17 @@ public abstract class AbstractBufferedImageIconPainter implements IconPainter {
         }
 
         private static class ResultData {
-            private Font font;
-            private FontMetrics fm;
-            private int width;
-            private int height;
+            private final Font font;
+            private final FontMetrics fm;
+            private final int width;
+            private final int height;
+
+            public ResultData(int width, int height, Font font, FontMetrics fm) {
+                this.width = width;
+                this.height = height;
+                this.font = font;
+                this.fm = fm;
+            }
 
             public int getWidth() {
                 return width;
@@ -354,13 +354,6 @@ public abstract class AbstractBufferedImageIconPainter implements IconPainter {
 
             public FontMetrics getFm() {
                 return fm;
-            }
-
-            private void set(int width, int height, Font font, FontMetrics fm) {
-                this.width = width;
-                this.height = height;
-                this.font = font;
-                this.fm = fm;
             }
         }
     }
