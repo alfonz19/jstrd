@@ -47,18 +47,19 @@ public abstract class AbstractBufferedImageIconPainter implements IconPainter {
     }
 
     protected AbstractBufferedImageIconPainter(int iconSize, InputStream imageByteStream) {
-        this(iconSize, readImageFromStream(imageByteStream));
+        this(iconSize, readImageFromStream(iconSize, imageByteStream));
     }
 
     public AbstractBufferedImageIconPainter(int iconSize, byte[] bytes) {
-        this(iconSize, readImageFromStream(new ByteArrayInputStream(bytes)));
+        this(iconSize, readImageFromStream(iconSize, new ByteArrayInputStream(bytes)));
     }
 
-    private static BufferedImage readImageFromStream(InputStream imageByteStream) {
+    private static BufferedImage readImageFromStream(int iconSize, InputStream imageByteStream) {
         try {
-            //TODO MMUCHA: cropping!
             BufferedImage image = ImageIO.read(imageByteStream);
-            return image;
+            return image.getWidth() > iconSize || image.getHeight() > iconSize
+                    ? image.getSubimage(0, 0, iconSize, iconSize)
+                    : image;
         } catch (IOException e) {
             throw new StrdException(e);
         }
