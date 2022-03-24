@@ -171,8 +171,10 @@ public class StreamDeckOriginalV2 extends AbstractStreamDeck {
     @Override
     public void setButtonImage(byte[][] payloadsBytes) {
         for (byte[] payloadBytes : payloadsBytes) {
-            //TODO MMUCHA: logging.
             int result = sendIthPacketSettingButtonImage(payloadBytes, payloadBytes.length);
+            if (result == -1) {
+                log.error("Setting button image failed");
+            }
         }
     }
 
@@ -183,8 +185,10 @@ public class StreamDeckOriginalV2 extends AbstractStreamDeck {
     @Override
     public void setButtonImage(int buttonIndex, byte[] buttonImage) {
         splitNativeImageBytesAndProcess(buttonIndex, buttonImage, (bytes, length)-> {
-            //TODO MMUCHA: logging.
             int result = sendIthPacketSettingButtonImage(bytes, length);
+            if (result == -1) {
+                log.error("Setting button image failed");
+            }
         });
     }
 }
