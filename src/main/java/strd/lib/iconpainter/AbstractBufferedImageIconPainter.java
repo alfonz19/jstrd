@@ -38,7 +38,6 @@ public abstract class AbstractBufferedImageIconPainter implements IconPainter {
         this.bi = bi;
         g2 = bi.createGraphics();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        //TODO MMUCHA: test!
         g2.setClip(0, 0, iconSize, iconSize);
     }
 
