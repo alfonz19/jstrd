@@ -150,6 +150,7 @@ public class StreamDeckOriginalV2 extends AbstractStreamDeck {
                         bytesAlreadySent);
 
                 long start = System.nanoTime();
+                //it seems, that streamdeck mk2 needs whole packets to be sent each time. Otherwise it fails ...
                 processSetImagePayload.accept(payload, /*sliceLength+PACKET_HEADER_SIZE_WITHOUT_REPORT_ID*/PACKET_SIZE_WITHOUT_REPORT_ID);
 
                 long diff = System.nanoTime() - start;
