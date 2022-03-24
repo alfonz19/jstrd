@@ -231,9 +231,8 @@ public abstract class AbstractBufferedImageIconPainter implements IconPainter {
 
     @Override
     public final byte[] toDeviceNativeFormat() {
-        //TODO MMUCHA: probable bug, call dispose after reading from buffered image.
-        g2.dispose();
         byte[] result = toDeviceNativeFormatTransformation();
+        g2.dispose();
         return result;
     }
 
