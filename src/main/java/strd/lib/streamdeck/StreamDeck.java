@@ -56,13 +56,6 @@ public interface StreamDeck extends AutoCloseable {
     void screenOn();
     void screenOff();
 
-    /**
-     * Issue request to device to fetch its serial number. Probably pointless, as
-     * {@link PureJavaHid.StreamDeckInfoImpl#getSerialNumberString} seems to return the same string.
-     * @return serial number of device
-     */
-    String getSerialNumber();
-
 
     interface ButtonStateListener {
         void buttonsStateUpdated(HidLibrary.StreamDeckInfo streamDeckInfo, boolean[] buttonStates);

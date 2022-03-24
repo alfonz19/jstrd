@@ -2,7 +2,6 @@ package strd.lib.streamdeck;
 
 import strd.lib.hid.StreamDeckHandle;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
@@ -34,27 +33,6 @@ public class StreamDeckOriginalV2 extends AbstractStreamDeck {
         super(streamDeckHandle);
     }
 
-
-    @Override
-    public String getSerialNumber() {
-        byte[] getSerialNumberRequest = createGetSerialNumberRequest();
-        streamDeckHandle.getFeatureReport(getSerialNumberRequest, getSerialNumberRequest.length);
-
-        int prefixToSkip = 2;
-        String str = new String(getSerialNumberRequest,
-                prefixToSkip,
-                getSerialNumberRequest.length - prefixToSkip,
-                StandardCharsets.UTF_8);
-//        int firstNullByte = str.indexOf('\0');
-//        return str.substring(0, firstNullByte).trim();
-        return str.trim();
-    }
-
-    private static byte[] createGetSerialNumberRequest() {
-        byte[] payload = new byte[32];
-        payload[0] = 0x06;
-        return payload;
-    }
 
     @Override
     public void resetDevice() {
