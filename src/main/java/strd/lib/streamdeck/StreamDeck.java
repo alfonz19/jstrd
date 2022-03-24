@@ -3,7 +3,9 @@ package strd.lib.streamdeck;
 import strd.lib.hid.HidLibrary;
 import strd.lib.hid.PureJavaHid;
 
-import java.util.function.Consumer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.BiConsumer;
 
 @SuppressWarnings("unused")
 public interface StreamDeck extends AutoCloseable {
@@ -32,7 +34,15 @@ public interface StreamDeck extends AutoCloseable {
      * @param buttonImage image data in device specific format.
      * @param processSetImagePayload what to do with each packet of (potentially, probably) split image data.
      */
-    void splitNativeImageBytesAndProcess(int buttonIndex, byte[] buttonImage, Consumer<byte[]> processSetImagePayload);
+    void splitNativeImageBytesAndProcess(int buttonIndex, byte[] buttonImage, BiConsumer<byte[], Integer> processSetImagePayload);
+
+    default byte[][] splitNativeImageBytes(int buttonIndex, byte[] buttonImage) {
+        List<byte[]> result = new ArrayList<>(10);
+        splitNativeImageBytesAndProcess(buttonIndex, buttonImage, (bytes, length)-> {
+            result.add(bytes);
+        });
+        return result.toArray(new byte[0][]);
+    }
 
     /**
      * sends prepared button image data to device.

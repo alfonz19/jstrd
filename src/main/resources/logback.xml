@@ -29,7 +29,7 @@
   <logger name="alf.Main" level="info"/>
   <logger name="HID" level="off"/>
   <logger name="reactor.util.Loggers" level="off"/>
-  <logger name="strd.lib.streamdeck.StreamDeckOriginalV2" level="warn"/>
+  <logger name="strd.lib.streamdeck.StreamDeckOriginalV2" level="off"/>
   <logger name="strd.lib.iconpainter.factory.AbstractBufferedImageIconPainterFactory" level="warn"/>
   <logger name="strd.lib.example.LibMain" level="debug"/>
 

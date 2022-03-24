@@ -20,10 +20,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
@@ -132,7 +133,7 @@ public class LibMain {
                         colorsWithMultiLineText(streamDeck);
                     } else if (buttonIndex == 4) {
                         //images
-                        //OOOXO
+                        //OOOOX
                         //OOOOO
                         //OOOOO
                         someImages2(streamDeck);
@@ -157,11 +158,11 @@ public class LibMain {
                         //OXOOO
                         streamDeck.screenOn();
                     } else if (buttonIndex == 12) {
-                        //some images2
+                        //some images3
                         //OOOOO
                         //OOOOO
                         //OOXOO
-                        someImages2(streamDeck);
+                        someImages3(streamDeck);
                     } else if (buttonIndex == 13) {
                         //RESET
                         //OOOOO
@@ -285,14 +286,39 @@ public class LibMain {
         byte[] imageBytes = readPhotoFromFile("/magda.jpg");
         byte[] bytes = iconPainterFactory.create(streamDeck, imageBytes).toDeviceNativeFormat();
 
+        Map<Integer, byte[][]> buttonBytesForEachButton =
+                IntStream.range(0, streamDeck.getStreamDeckInfo().getStreamDeckVariant().getKeyCount())
+                        .boxed()
+                        .collect(Collectors.toMap(Function.identity(),
+                                index -> streamDeck.splitNativeImageBytes(index, bytes)));
+
 
         long start = System.nanoTime();
-        IntStream.range(0, streamDeck.getStreamDeckInfo().getStreamDeckVariant().getKeyCount()).forEach(index -> {
-            streamDeck.setButtonImage((byte)index, bytes);
-        });
+        buttonBytesForEachButton.values().forEach(streamDeck::setButtonImage);
         long end = System.nanoTime();
 
-        log.info("All buttons painted in {}ms", TimeUnit.NANOSECONDS.toMicros(end-start));
+        log.info("All buttons painted in {}us", TimeUnit.NANOSECONDS.toMicros(end-start));
+
+    }
+
+    //hypothetical speedup
+    public void someImages3(StreamDeck streamDeck) {
+        IconPainterFactory iconPainterFactory = findIconPainter(streamDeck);
+        byte[] imageBytes = readPhotoFromFile("/magda.jpg");
+        byte[] bytes = iconPainterFactory.create(streamDeck, imageBytes).toDeviceNativeFormat();
+
+        Map<Integer, byte[][]> buttonBytesForEachButton =
+                IntStream.range(0, streamDeck.getStreamDeckInfo().getStreamDeckVariant().getKeyCount())
+                        .boxed()
+                        .collect(Collectors.toMap(Function.identity(),
+                                index -> streamDeck.splitNativeImageBytes(index, bytes)));
+
+
+        long start = System.nanoTime();
+        buttonBytesForEachButton.values().forEach(streamDeck::setButtonImage);
+        long end = System.nanoTime();
+
+        log.info("All buttons painted in {}us", TimeUnit.NANOSECONDS.toMicros(end-start));
 
     }
 

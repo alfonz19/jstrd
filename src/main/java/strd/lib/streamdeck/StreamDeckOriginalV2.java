@@ -5,16 +5,30 @@ import strd.lib.hid.StreamDeckHandle;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-import java.util.function.ToDoubleBiFunction;
+import java.util.function.BiConsumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class StreamDeckOriginalV2 extends AbstractStreamDeck {
 
-    public static final byte[] RESET_DEVICE_PAYLOAD = createResetDeviceRequest();
     private static final Logger log = LoggerFactory.getLogger(StreamDeckOriginalV2.class);
+
+    public static final byte[] RESET_DEVICE_PAYLOAD = createResetDeviceRequest();
+
+    //this can vary per device.
+    private static final int MAX_PACKET_SIZE = 1024;
+    //total size of header, in packet actually sent, ie. when whole header is there, including reportID.
+    private static final int IMAGE_REPORT_HEADER_LENGTH = 8;
+
+    //max amount of actual actual image data sent in individual packet.
+    private static final int MAX_IMAGE_DATA_SIZE = MAX_PACKET_SIZE - IMAGE_REPORT_HEADER_LENGTH;
+
+    //the first byte is set by HID library we use, and it's not part of data array we pass into it.
+    private static final int PACKET_SIZE_WITHOUT_REPORT_ID = MAX_PACKET_SIZE - 1;
+
+    //the first byte is set by HID library we use, and it's not part of data array we pass into it.
+    private static final int PACKET_HEADER_SIZE_WITHOUT_REPORT_ID = IMAGE_REPORT_HEADER_LENGTH - 1;
 
     public StreamDeckOriginalV2(StreamDeckHandle streamDeckHandle) {
         super(streamDeckHandle);
@@ -78,11 +92,8 @@ public class StreamDeckOriginalV2 extends AbstractStreamDeck {
         return payload;
     }
 
-    //-----------------
-
-    //TODO MMUCHA: optimize, too many pointless array creations.
     @Override
-    public void splitNativeImageBytesAndProcess(int buttonIndex, byte[] buttonImage, Consumer<byte[]> processSetImagePayload) {
+    public void splitNativeImageBytesAndProcess(int buttonIndex, byte[] buttonImage, BiConsumer<byte[], Integer> processSetImagePayload) {
         if (buttonIndex < 0 || buttonIndex > 14) {
             log.error("Not existing button: {}", buttonIndex);
             return;
@@ -90,25 +101,14 @@ public class StreamDeckOriginalV2 extends AbstractStreamDeck {
 
         byte buttonIndexAsByte = (byte) buttonIndex;
 
-        //this can vary per device.
-        int maxPacketSize = 1024;
-        //total size of header, in packet actually sent, ie. when whole header is there, including reportID.
-        int imageReportHeaderLength = 8;
-
-        //max amount of actual actual image data sent in individual packet.
-        int maxImageDataSize = maxPacketSize - imageReportHeaderLength;
-
-        //the first byte is set by HID library we use, and it's not part of data array we pass into it.
-        int packetSizeWithoutReportID = maxPacketSize - 1;
-
         //----------
         int iteration = 0;
         int remainingBytes = buttonImage.length;
 
         try {
             while (remainingBytes > 0) {
-                int sliceLength = Math.min(remainingBytes, maxImageDataSize);
-                int bytesAlreadySent = iteration * maxImageDataSize;
+                int sliceLength = Math.min(remainingBytes, MAX_IMAGE_DATA_SIZE);
+                int bytesAlreadySent = iteration * MAX_IMAGE_DATA_SIZE;
                 boolean isLastPacket = sliceLength == remainingBytes;
 
                 // These components are nothing else but UInt16 low-endian
@@ -119,24 +119,29 @@ public class StreamDeckOriginalV2 extends AbstractStreamDeck {
                 byte bitmaskedIteration = (byte) (iteration & 0xFF);
                 byte shiftedIteration = (byte) (iteration >> 8);
 
-
                 byte isLastPacketByte = (byte) (isLastPacket ? 1 : 0);
-                byte[] header = new byte[]{
-//                    0x02, //it seems, that this is written by our hid library, so we must not write it here.
-                        0x07,
-                        buttonIndexAsByte,
-                        isLastPacketByte,
-                        bitmaskedLength,
-                        shiftedLength,
-                        bitmaskedIteration,
-                        shiftedIteration};
 
-                byte[] finalPayload = new byte[packetSizeWithoutReportID];
-                Arrays.fill(finalPayload, (byte) 0);
-                System.arraycopy(header, 0, finalPayload, 0, header.length);
-                System.arraycopy(buttonImage, bytesAlreadySent, finalPayload, header.length, sliceLength);
+                byte[] payload = new byte[PACKET_SIZE_WITHOUT_REPORT_ID];
 
-                log.debug("header length={}", header.length);
+
+                //write header.
+                payload[0] = 0x07;
+                payload[1] = buttonIndexAsByte;
+                payload[2] = isLastPacketByte;
+                payload[3] = bitmaskedLength;
+                payload[4] = shiftedLength;
+                payload[5] = bitmaskedIteration;
+                payload[6] = shiftedIteration;
+
+                //copy the image data
+                System.arraycopy(buttonImage, bytesAlreadySent, payload, PACKET_HEADER_SIZE_WITHOUT_REPORT_ID, sliceLength);
+                if (sliceLength < MAX_IMAGE_DATA_SIZE) {
+                    Arrays.fill(payload,
+                            PACKET_HEADER_SIZE_WITHOUT_REPORT_ID + sliceLength,
+                            PACKET_SIZE_WITHOUT_REPORT_ID,
+                            (byte) 0);
+                }
+
                 log.debug(
                         "sending {}-th packet. Slice length={}, isLastPacketByte={}, bytesAlreadySent={}",
                         iteration,
@@ -145,7 +150,7 @@ public class StreamDeckOriginalV2 extends AbstractStreamDeck {
                         bytesAlreadySent);
 
                 long start = System.nanoTime();
-                processSetImagePayload.accept(finalPayload);
+                processSetImagePayload.accept(payload, /*sliceLength+PACKET_HEADER_SIZE_WITHOUT_REPORT_ID*/PACKET_SIZE_WITHOUT_REPORT_ID);
 
                 long diff = System.nanoTime() - start;
                 log.trace("writing done in {}ms",
@@ -167,19 +172,19 @@ public class StreamDeckOriginalV2 extends AbstractStreamDeck {
     public void setButtonImage(byte[][] payloadsBytes) {
         for (byte[] payloadBytes : payloadsBytes) {
             //TODO MMUCHA: logging.
-            int result = sendIthPacketSettingButtonImage(payloadBytes);
+            int result = sendIthPacketSettingButtonImage(payloadBytes, payloadBytes.length);
         }
     }
 
-    private int sendIthPacketSettingButtonImage(byte[] payloadBytes) {
-        return this.streamDeckHandle.setOutputReport((byte) 0x02, payloadBytes, payloadBytes.length);
+    private int sendIthPacketSettingButtonImage(byte[] payloadBytes, int length) {
+        return this.streamDeckHandle.setOutputReport((byte) 0x02, payloadBytes, length);
     }
 
     @Override
     public void setButtonImage(int buttonIndex, byte[] buttonImage) {
-        splitNativeImageBytesAndProcess(buttonIndex, buttonImage, bytes-> {
+        splitNativeImageBytesAndProcess(buttonIndex, buttonImage, (bytes, length)-> {
             //TODO MMUCHA: logging.
-            int result = sendIthPacketSettingButtonImage(bytes);
+            int result = sendIthPacketSettingButtonImage(bytes, length);
         });
     }
 }
