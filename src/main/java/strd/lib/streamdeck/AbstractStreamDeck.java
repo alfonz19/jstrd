@@ -1,5 +1,6 @@
 package strd.lib.streamdeck;
 
+import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
@@ -9,14 +10,22 @@ import strd.lib.Constants;
 import strd.lib.hid.HidLibrary.StreamDeckInfo;
 import strd.lib.hid.StreamDeckHandle;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+import org.slf4j.Logger;
+
+import static org.slf4j.LoggerFactory.getLogger;
+
 public abstract class AbstractStreamDeck implements StreamDeck {
-    protected final StreamDeckHandle streamDeckHandle;
+    private static final Logger log = getLogger(AbstractStreamDeck.class);
+
+    private final StreamDeckHandle streamDeckHandle;
 
     private final List<ButtonStateListener> buttonsStateListeners = new ArrayList<>();
+    private final StreamDeckCommandsProcessor streamDeckCommandsProcessor;
     private int lastSetScreenBrightness = Constants.INITIAL_LAST_SET_SCREEN_BRIGHTNESS;
     private final StreamDeckInfo streamDeckInfo;
 
@@ -25,6 +34,7 @@ public abstract class AbstractStreamDeck implements StreamDeck {
         this.streamDeckHandle = streamDeckHandle;
         this.streamDeckInfo = streamDeckHandle.getStreamDeckInfo();
         registerInputReportListener();
+        streamDeckCommandsProcessor = new StreamDeckCommandsProcessor(streamDeckHandle);
     }
 
     @Override
@@ -50,10 +60,25 @@ public abstract class AbstractStreamDeck implements StreamDeck {
     @Override
     public final void setBrightness(int percent) {
         lastSetScreenBrightness = percent != 0 ? percent : lastSetScreenBrightness;
-        setBrightnessImpl(percent);
+        streamDeckCommandsProcessor.addCommand(createSetBrightnessCommand(percent));
     }
 
-    protected abstract void setBrightnessImpl(int percent);
+    @Override
+    public final void resetDevice() {
+        streamDeckCommandsProcessor.addCommand(createResetCommand());
+    }
+
+    protected abstract StreamDeckCommand createResetCommand();
+
+    @Override
+    public final void setButtonImage(List<byte[]> payloadsBytes) {
+        streamDeckCommandsProcessor.addCommand(createSetButtonImageCommand(payloadsBytes));
+    }
+
+    protected abstract SetButtonImageCommand createSetButtonImageCommand(List<byte[]> payloadsBytes);
+
+
+    protected abstract SetBrightnessCommand createSetBrightnessCommand(int percent);
 
     @Override
     public final void screenOff() {
@@ -156,6 +181,91 @@ public abstract class AbstractStreamDeck implements StreamDeck {
         //for some reason, indices of reported buttons are shifted. First button starts at index 3.
         private byte readValueForIthButton(byte[] reportData, Integer i) {
             return reportData[i + 3];
+        }
+    }
+
+    private static class StreamDeckCommandsProcessor {
+        private static final Scheduler scheduler = Schedulers.newSingle("command-processor", true);
+        private Consumer<StreamDeckCommand> consumer;
+
+        public StreamDeckCommandsProcessor(StreamDeckHandle streamDeckHandle) {
+            Disposable commandFlux = Flux.<StreamDeckCommand>create(sink -> consumer = sink::next)
+                    .publishOn(scheduler)
+                    .doOnNext(e -> e.processCommand(streamDeckHandle))
+                    .subscribe();
+        }
+
+        public void addCommand(StreamDeckCommand setOutputReportCommand) {
+            consumer.accept(setOutputReportCommand);
+        }
+    }
+
+    protected interface StreamDeckCommand {
+        void processCommand(StreamDeckHandle streamDeckHandle);
+    }
+
+    protected static class SetButtonImageCommand implements StreamDeckCommand {
+
+        private final List<byte[]> payloadsBytesList;
+        private final int reportId;
+
+        public SetButtonImageCommand(int reportId, List<byte[]> payloadsBytesList) {
+            this.reportId = reportId;
+            this.payloadsBytesList = payloadsBytesList;
+        }
+
+        @Override
+        public void processCommand(StreamDeckHandle streamDeckHandle) {
+            payloadsBytesList.forEach(e -> {
+                int result = streamDeckHandle.setOutputReport((byte) reportId, e, e.length);
+                if (result == -1) {
+                    log.error("Setting outputReport failed");
+                }
+            });
+        }
+    }
+
+    protected static class SetBrightnessCommand implements StreamDeckCommand {
+
+        private final int reportId;
+        private final byte[] payload;
+        private final int length;
+
+        public SetBrightnessCommand(int reportId, byte[] payload, int length) {
+
+            this.reportId = reportId;
+            this.payload = payload;
+            this.length = length;
+        }
+
+        @Override
+        public void processCommand(StreamDeckHandle streamDeckHandle) {
+            int result = streamDeckHandle.setFeatureReport((byte)reportId, payload, length);
+            if (result == -1) {
+                log.error("Setting feature report failed");
+            }
+        }
+    }
+
+    protected static class ResetCommand implements StreamDeckCommand {
+
+        private final byte reportId;
+        private final byte[] payload;
+        private final int length;
+
+        public ResetCommand(byte reportId, byte[] payload, int length) {
+
+            this.reportId = reportId;
+            this.payload = payload;
+            this.length = length;
+        }
+
+        @Override
+        public void processCommand(StreamDeckHandle streamDeckHandle) {
+            int result = streamDeckHandle.setFeatureReport((byte)reportId, payload, length);
+            if (result == -1) {
+                log.error("Setting feature report failed");
+            }
         }
     }
 }

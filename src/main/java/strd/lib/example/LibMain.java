@@ -286,7 +286,7 @@ public class LibMain {
         byte[] imageBytes = readPhotoFromFile("/magda.jpg");
         byte[] bytes = iconPainterFactory.create(streamDeck, imageBytes).toDeviceNativeFormat();
 
-        Map<Integer, byte[][]> buttonBytesForEachButton =
+        Map<Integer, List<byte[]>> buttonBytesForEachButton =
                 IntStream.range(0, streamDeck.getStreamDeckInfo().getStreamDeckVariant().getKeyCount())
                         .boxed()
                         .collect(Collectors.toMap(Function.identity(),
@@ -307,7 +307,7 @@ public class LibMain {
         byte[] imageBytes = readPhotoFromFile("/magda.jpg");
         byte[] bytes = iconPainterFactory.create(streamDeck, imageBytes).toDeviceNativeFormat();
 
-        Map<Integer, byte[][]> buttonBytesForEachButton =
+        Map<Integer, List<byte[]>> buttonBytesForEachButton =
                 IntStream.range(0, streamDeck.getStreamDeckInfo().getStreamDeckVariant().getKeyCount())
                         .boxed()
                         .collect(Collectors.toMap(Function.identity(),

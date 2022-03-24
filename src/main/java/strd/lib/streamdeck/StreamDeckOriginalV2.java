@@ -3,6 +3,7 @@ package strd.lib.streamdeck;
 import strd.lib.hid.StreamDeckHandle;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
@@ -35,13 +36,8 @@ public class StreamDeckOriginalV2 extends AbstractStreamDeck {
 
 
     @Override
-    public void resetDevice() {
-        int i = this.streamDeckHandle.setFeatureReport((byte) 0x03, RESET_DEVICE_PAYLOAD, RESET_DEVICE_PAYLOAD.length);
-        if (i == -1) {
-            log.warn("Resetting device failed");
-        } else {
-            log.debug("Resetting device returned: {}", i);
-        }
+    protected StreamDeckCommand createResetCommand() {
+        return new ResetCommand((byte) 0x03, RESET_DEVICE_PAYLOAD, RESET_DEVICE_PAYLOAD.length);
     }
 
     private static byte[] createResetDeviceRequest() {
@@ -51,23 +47,15 @@ public class StreamDeckOriginalV2 extends AbstractStreamDeck {
     }
 
     @Override
-    public void setBrightnessImpl(int percent) {
+    public SetBrightnessCommand createSetBrightnessCommand(int percent) {
         //fix incorrect input.
         percent = (byte)Math.min(Math.max(percent, 0), 100);
 
-        byte[] setBrightnessRequest = createSetBrightnessRequest();
-        setBrightnessRequest[1] = (byte)percent;
-        this.streamDeckHandle.setFeatureReport((byte) 0x03, setBrightnessRequest, setBrightnessRequest.length);
-    }
-
-    private byte[] createSetBrightnessRequest() {
         byte[] payload = new byte[32];
         payload[0] = 0x08;
+        payload[1] = (byte)percent;
 
-        //default value, to be updated. Specifying it here just to have valid request to begin with
-        payload[1] = (byte)50;
-
-        return payload;
+        return new SetBrightnessCommand(0x03, payload, payload.length);
     }
 
     @Override
@@ -148,26 +136,7 @@ public class StreamDeckOriginalV2 extends AbstractStreamDeck {
     }
 
     @Override
-    public void setButtonImage(byte[][] payloadsBytes) {
-        for (byte[] payloadBytes : payloadsBytes) {
-            int result = sendIthPacketSettingButtonImage(payloadBytes, payloadBytes.length);
-            if (result == -1) {
-                log.error("Setting button image failed");
-            }
-        }
-    }
-
-    private int sendIthPacketSettingButtonImage(byte[] payloadBytes, int length) {
-        return this.streamDeckHandle.setOutputReport((byte) 0x02, payloadBytes, length);
-    }
-
-    @Override
-    public void setButtonImage(int buttonIndex, byte[] buttonImage) {
-        splitNativeImageBytesAndProcess(buttonIndex, buttonImage, (bytes, length)-> {
-            int result = sendIthPacketSettingButtonImage(bytes, length);
-            if (result == -1) {
-                log.error("Setting button image failed");
-            }
-        });
+    protected SetButtonImageCommand createSetButtonImageCommand(List<byte[]> payloadsBytes) {
+        return new SetButtonImageCommand(0x02, payloadsBytes);
     }
 }

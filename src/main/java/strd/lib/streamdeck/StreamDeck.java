@@ -1,7 +1,6 @@
 package strd.lib.streamdeck;
 
 import strd.lib.hid.HidLibrary;
-import strd.lib.hid.PureJavaHid;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,10 +23,12 @@ public interface StreamDeck extends AutoCloseable {
      * @param buttonIndex index of button to be set
      * @param buttonImage image data in device specific format.
      */
-    void setButtonImage(int buttonIndex, byte[] buttonImage);
+    default void setButtonImage(int buttonIndex, byte[] buttonImage) {
+        setButtonImage(splitNativeImageBytes(buttonIndex, buttonImage));
+    }
 
     /**
-     * Method should be used for preparing the data, caching them, and using them with {@link #setButtonImage(byte[][])}
+     * Method should be used for preparing the data, caching them, and using them with {@link #setButtonImage(List)}
      * when needed to save some preparing time.
      *
      * @param buttonIndex index of button to be set
@@ -36,19 +37,17 @@ public interface StreamDeck extends AutoCloseable {
      */
     void splitNativeImageBytesAndProcess(int buttonIndex, byte[] buttonImage, BiConsumer<byte[], Integer> processSetImagePayload);
 
-    default byte[][] splitNativeImageBytes(int buttonIndex, byte[] buttonImage) {
+    default List<byte[]> splitNativeImageBytes(int buttonIndex, byte[] buttonImage) {
         List<byte[]> result = new ArrayList<>(10);
-        splitNativeImageBytesAndProcess(buttonIndex, buttonImage, (bytes, length)-> {
-            result.add(bytes);
-        });
-        return result.toArray(new byte[0][]);
+        splitNativeImageBytesAndProcess(buttonIndex, buttonImage, (bytes, length)-> result.add(bytes));
+        return result;
     }
 
     /**
      * sends prepared button image data to device.
-     * @param payloadsBytes
+     * @param payloadsBytes list of image byte arrays, payloads to be sent.
      */
-    void setButtonImage(byte[][] payloadsBytes);
+    void setButtonImage(List<byte[]> payloadsBytes);
 
 
     void resetDevice();
