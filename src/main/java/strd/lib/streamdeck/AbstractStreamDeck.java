@@ -1,6 +1,7 @@
 package strd.lib.streamdeck;
 
 import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
@@ -106,6 +107,8 @@ public abstract class AbstractStreamDeck implements StreamDeck {
      * needs to be familiar enough with it.)
      */
     private static class ProcessInputReportListenerInSeparateThread implements StreamDeckHandle.InputReportListener {
+        private static final Scheduler scheduler = Schedulers.newSingle("button-listener", true);
+
         private final int keyCount;
         private final StreamDeckInfo streamDeckInfo;
         private final AbstractStreamDeck streamDeck;
@@ -120,7 +123,7 @@ public abstract class AbstractStreamDeck implements StreamDeck {
             buttonStates = new boolean[keyCount];
 
             Flux.<Tuple2<byte[], Integer>>create(sink -> consumer = sink::next)
-                    .publishOn(Schedulers.single())
+                    .publishOn(scheduler)
                     .subscribe(this::processInputReport);
         }
 
