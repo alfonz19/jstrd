@@ -6,7 +6,6 @@ import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 import strd.lib.hid.HidLibrary.StreamDeckInfo;
 import strd.lib.hid.StreamDeckHandle;
-import strd.lib.streamdeck.StreamDeck;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +14,6 @@ import java.util.function.Consumer;
 public abstract class AbstractStreamDeck implements StreamDeck {
     protected final StreamDeckHandle streamDeckHandle;
 
-    private final int keyCount;
 
     private final List<ButtonStateListener> buttonsStateListeners = new ArrayList<>();
     //TODO MMUCHA: externalize
@@ -26,7 +24,6 @@ public abstract class AbstractStreamDeck implements StreamDeck {
 
         this.streamDeckHandle = streamDeckHandle;
         this.streamDeckInfo = streamDeckHandle.getStreamDeckInfo();
-        this.keyCount = streamDeckHandle.getStreamDeckInfo().getStreamDeckVariant().getKeyCount();
         registerInputReportListener();
     }
 
@@ -79,14 +76,7 @@ public abstract class AbstractStreamDeck implements StreamDeck {
     }
 
     private void registerInputReportListener() {
-        streamDeckHandle.setInputReportListener(new ProcessInputReportListenerInSeparateThread());
-    }
-
-    //Maybe this is used when not all bytes are sent in one 'packet'?
-    //
-    //for some reason, indices of reported buttons are shifted. First button starts at index 3.
-    private byte readValueForIthButton(byte[] reportData, Integer i) {
-        return reportData[i + 3];
+        streamDeckHandle.setInputReportListener(new ProcessInputReportListenerInSeparateThread(this));
     }
 
     @Override
@@ -115,13 +105,20 @@ public abstract class AbstractStreamDeck implements StreamDeck {
      * Flux is not being propagated out from this, as I don't want to make this a reactive app(because not everyone
      * needs to be familiar enough with it.)
      */
-    //TODO MMUCHA: dedicated thread?
-    private class ProcessInputReportListenerInSeparateThread implements StreamDeckHandle.InputReportListener {
+    private static class ProcessInputReportListenerInSeparateThread implements StreamDeckHandle.InputReportListener {
+        private final int keyCount;
+        private final StreamDeckInfo streamDeckInfo;
+        private final AbstractStreamDeck streamDeck;
         private Consumer<Tuple2<byte[], Integer>> consumer;
-        private final boolean[] buttonStates = new boolean[keyCount];
+        private final boolean[] buttonStates;
 
 
-        public ProcessInputReportListenerInSeparateThread() {
+        public ProcessInputReportListenerInSeparateThread(AbstractStreamDeck streamDeck) {
+            this.streamDeck = streamDeck;
+            streamDeckInfo = streamDeck.getStreamDeckInfo();
+            this.keyCount = streamDeckInfo.getStreamDeckVariant().getKeyCount();
+            buttonStates = new boolean[keyCount];
+
             Flux.<Tuple2<byte[], Integer>>create(sink -> consumer = sink::next)
                     .publishOn(Schedulers.single())
                     .subscribe(this::processInputReport);
@@ -142,14 +139,21 @@ public abstract class AbstractStreamDeck implements StreamDeck {
                 boolean newState = readValueForIthButton(reportData, buttonIndex) != 0;
 
                 if (newState != oldState) {
-                    for (ButtonStateListener buttonsStateListener : buttonsStateListeners) {
+                    for (ButtonStateListener buttonsStateListener : streamDeck.buttonsStateListeners) {
                         buttonsStateListener.buttonStateUpdated(streamDeckInfo, buttonIndex, newState);
                     }
                 }
 
                 buttonStates[buttonIndex] = newState;
             }
-            buttonsStateListeners.forEach(e->e.buttonsStateUpdated(streamDeckInfo, buttonStates));
+            streamDeck.buttonsStateListeners.forEach(e->e.buttonsStateUpdated(streamDeckInfo, buttonStates));
+        }
+
+        //Maybe this is used when not all bytes are sent in one 'packet'?
+        //
+        //for some reason, indices of reported buttons are shifted. First button starts at index 3.
+        private byte readValueForIthButton(byte[] reportData, Integer i) {
+            return reportData[i + 3];
         }
     }
 }
