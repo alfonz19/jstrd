@@ -5,6 +5,7 @@ import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
+import strd.lib.Constants;
 import strd.lib.hid.HidLibrary.StreamDeckInfo;
 import strd.lib.hid.StreamDeckHandle;
 
@@ -15,10 +16,8 @@ import java.util.function.Consumer;
 public abstract class AbstractStreamDeck implements StreamDeck {
     protected final StreamDeckHandle streamDeckHandle;
 
-
     private final List<ButtonStateListener> buttonsStateListeners = new ArrayList<>();
-    //TODO MMUCHA: externalize
-    private int lastSetScreenBrightness = 10;
+    private int lastSetScreenBrightness = Constants.INITIAL_LAST_SET_SCREEN_BRIGHTNESS;
     private final StreamDeckInfo streamDeckInfo;
 
     public AbstractStreamDeck(StreamDeckHandle streamDeckHandle) {

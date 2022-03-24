@@ -2,6 +2,7 @@ package strd.lib;
 
 //TODO MMUCHA: externalize
 public class Constants {
+
     private Constants() {}
 
     public static final int PRODUCT_ID = 0x0fd9;
@@ -16,4 +17,6 @@ public class Constants {
 
     public static final int MAX_X_MARGIN = 10;
     public static final int MAX_Y_MARGIN = 10;
+
+    public static final int INITIAL_LAST_SET_SCREEN_BRIGHTNESS = 10;
 }
