@@ -12,9 +12,9 @@ public interface StreamDeckHandle {
 
     int getFeatureReport(byte[] getSerialNumberRequest, int length);
 
-    int setFeatureReport(byte b, byte[] resetPayload, int length);
+    int setFeatureReport(byte reportId, byte[] resetPayload, int length);
 
-    int setOutputReport(byte b, byte[] finalPayload, int length);
+    int setOutputReport(byte reportId, byte[] finalPayload, int length);
 
     HidLibrary.StreamDeckInfo getStreamDeckInfo();
 
