@@ -33,11 +33,9 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -172,6 +170,15 @@ public class Main {
         log.info("  Device-Id:   " + info.getDeviceId());
         log.info("  Serial-No:   " + info.getSerialNumberString());
         log.info("  Path:        " + info.getPath());
+    }
+
+    public void printInfoAboutDevice() {
+        log.info("using streamdeck:");
+        log.info("  Manufacurer: " + hidDevice.getHidDeviceInfo().getManufacturerString());
+        log.info("  Product:     " + hidDevice.getHidDeviceInfo().getProductString());
+        log.info("  Device-Id:   " + hidDevice.getHidDeviceInfo().getDeviceId());
+        log.info("  Serial-No:   " + hidDevice.getHidDeviceInfo().getSerialNumberString());
+        log.info("  Path:        " + hidDevice.getHidDeviceInfo().getPath());
     }
 
     private HidDeviceInfo findStreamDeckDevice() {
