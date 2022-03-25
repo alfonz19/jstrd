@@ -1,0 +1,16 @@
+#file/dir with iml extension anywhere in directory tree
+*.iml
+target
+.project
+.settings
+.vscode
+.classpath
+.factorypath
+dependency-reduced-pom.xml
+
+#ignore whole directory .idea. "/*" suffix is important!
+.idea/*
+
+#whitelisting some files/directories
+#!.idea/codeStyles
+#!.idea/encodings.xml
