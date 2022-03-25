@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>alf</groupId>
+  <artifactId>streamdeck</artifactId>
+  <version>1.0-SNAPSHOT</version>
+
+  <name>streamdeck</name>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <slf4j.version>1.7.29</slf4j.version>
+    <logback.version>1.2.3</logback.version>
+    <logstash-logback-encoder.version>6.6</logstash-logback-encoder.version>
+
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>purejavahidapi</groupId>
+      <artifactId>purejavahidapi</artifactId>
+      <version>0.0.3-SNAPSHOT</version>
+    </dependency>
+
+<!--    <dependency>-->
+<!--      <groupId>io.github.vveird</groupId>-->
+<!--      <artifactId>purejavahidapi</artifactId>-->
+<!--      <version>0.0.3</version>-->
+<!--    </dependency>-->
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-ext</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>${logback.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-core</artifactId>
+      <version>${logback.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>net.logstash.logback</groupId>
+      <artifactId>logstash-logback-encoder</artifactId>
+      <version>${logstash-logback-encoder.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.mortennobel</groupId>
+      <artifactId>java-image-scaling</artifactId>
+      <version>0.8.6</version>
+    </dependency>
+
+    <dependency>
+      <groupId>net.imagej</groupId>
+      <artifactId>ij</artifactId>
+      <version>1.53j</version>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.11.0</version>
+    </dependency>
+
+
+  </dependencies>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.8.1</version>
+          <configuration>
+            <parameters>true</parameters>
+<!--            <release>${java.version}</release>-->
+            <compilerArgs>
+              <arg>-Xlint:all</arg>
+              <arg>-Xmaxwarns</arg>
+              <arg>50000</arg>
+              <arg>-Xlint:-processing</arg>
+            </compilerArgs>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+</project>
