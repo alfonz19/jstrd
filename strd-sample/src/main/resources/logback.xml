@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--setting debug here to true, shows internal data of logback.-->
+<configuration>
+
+  <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
+  <property name="LOG_BASE_DIR" value="${logging.baseDir}"/>
+
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+<!--      <Pattern>-->
+<!--        %d{yyyy-MM-dd HH:mm:ss.SSS} ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } -&#45;&#45; [%15.15t] %-40.40logger{39} : %m%n%ex-->
+<!--      </Pattern>-->
+
+      <Pattern>
+        [%15.15t] %-40.40logger{39} : %m%n%ex
+      </Pattern>
+    </encoder>
+  </appender>
+
+  <root level="debug">
+    <appender-ref ref="STDOUT"/>
+  </root>
+
+
+
+  <logger name="alf" level="all"/>
+  <logger name="alf.Main" level="info"/>
+  <logger name="HID" level="off"/>
+  <logger name="reactor.util.Loggers" level="off"/>
+  <logger name="strd.lib.streamdeck.StreamDeckOriginalV2" level="off"/>
+  <logger name="strd.lib.iconpainter.factory.AbstractBufferedImageIconPainterFactory" level="warn"/>
+  <logger name="strd.lib.sample.LibMain" level="debug"/>
+
+</configuration>

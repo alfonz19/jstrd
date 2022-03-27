@@ -4,89 +4,117 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>alf</groupId>
-  <artifactId>streamdeck</artifactId>
+  <groupId>alfonz19.strd</groupId>
+  <artifactId>strd-parent-pom</artifactId>
   <version>1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
 
-  <name>streamdeck</name>
+
+  <modules>
+    <module>strd-common</module>
+    <module>strd-spi</module>
+    <module>strd-pure-java-hid</module>
+    <module>strd-core</module>
+    <module>strd-sample</module>
+  </modules>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-<!--    <maven.compiler.target>1.8</maven.compiler.target>-->
-<!--    <maven.compiler.source>1.8</maven.compiler.source>-->
     <slf4j.version>1.7.36</slf4j.version>
     <logback.version>1.2.11</logback.version>
-    <logstash-logback-encoder.version>6.6</logstash-logback-encoder.version>
+    <logstash-logback-encoder.version>7.0.1</logstash-logback-encoder.version>
     <java.version>11</java.version>
-
   </properties>
 
-  <dependencies>
-    <dependency>
-      <groupId>purejavahidapi</groupId>
-      <artifactId>purejavahidapi</artifactId>
-      <version>0.0.3-SNAPSHOT</version>
-    </dependency>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>alfonz19.strd</groupId>
+        <artifactId>strd-common</artifactId>
+        <version>1.0-SNAPSHOT</version>
+      </dependency>
 
-<!--    <dependency>-->
-<!--      <groupId>io.github.vveird</groupId>-->
-<!--      <artifactId>purejavahidapi</artifactId>-->
-<!--      <version>0.0.3</version>-->
-<!--    </dependency>-->
+      <dependency>
+        <groupId>alfonz19.strd</groupId>
+        <artifactId>strd-core</artifactId>
+        <version>1.0-SNAPSHOT</version>
+      </dependency>
 
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>${slf4j.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-ext</artifactId>
-      <version>${slf4j.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
-      <version>${logback.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-core</artifactId>
-      <version>${logback.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>net.logstash.logback</groupId>
-      <artifactId>logstash-logback-encoder</artifactId>
-      <version>${logstash-logback-encoder.version}</version>
-    </dependency>
+      <dependency>
+        <groupId>alfonz19.strd</groupId>
+        <artifactId>strd-pure-java-hid</artifactId>
+        <version>1.0-SNAPSHOT</version>
+      </dependency>
 
-    <dependency>
-      <groupId>com.mortennobel</groupId>
-      <artifactId>java-image-scaling</artifactId>
-      <version>0.8.6</version>
-    </dependency>
+      <dependency>
+        <groupId>alfonz19.strd</groupId>
+        <artifactId>strd-spi</artifactId>
+        <version>1.0-SNAPSHOT</version>
+      </dependency>
 
-    <dependency>
-      <groupId>net.imagej</groupId>
-      <artifactId>ij</artifactId>
-      <version>1.53j</version>
-    </dependency>
+      <dependency>
+        <groupId>purejavahidapi</groupId>
+        <artifactId>purejavahidapi</artifactId>
+        <version>0.0.3-SNAPSHOT</version>
+      </dependency>
 
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-      <version>2.11.0</version>
-    </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${slf4j.version}</version>
+      </dependency>
 
-    <dependency>
-      <groupId>io.projectreactor</groupId>
-      <artifactId>reactor-core</artifactId>
-      <version>3.4.15</version>
-      <scope>compile</scope>
-    </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-ext</artifactId>
+        <version>${slf4j.version}</version>
+      </dependency>
 
+      <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-classic</artifactId>
+        <version>${logback.version}</version>
+      </dependency>
 
-  </dependencies>
+      <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-core</artifactId>
+        <version>${logback.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>net.logstash.logback</groupId>
+        <artifactId>logstash-logback-encoder</artifactId>
+        <version>${logstash-logback-encoder.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.mortennobel</groupId>
+        <artifactId>java-image-scaling</artifactId>
+        <version>0.8.6</version>
+      </dependency>
+
+      <dependency>
+        <groupId>net.imagej</groupId>
+        <artifactId>ij</artifactId>
+        <version>1.53j</version>
+      </dependency>
+
+      <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>2.11.0</version>
+      </dependency>
+
+      <dependency>
+        <groupId>io.projectreactor</groupId>
+        <artifactId>reactor-core</artifactId>
+        <version>3.4.16</version>
+        <scope>compile</scope>
+      </dependency>
+
+    </dependencies>
+  </dependencyManagement>
 
   <build>
     <pluginManagement>
