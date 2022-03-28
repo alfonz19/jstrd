@@ -1,10 +1,11 @@
 package strd.lib.util;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public class WaitUntilNotTerminated {
 
-    private boolean terminated = false;
     private final int millis;
-    private boolean started = false;
+    private final AtomicBoolean waiting = new AtomicBoolean(false);
 
     public WaitUntilNotTerminated() {
         this(500);
@@ -15,13 +16,13 @@ public class WaitUntilNotTerminated {
     }
 
     public void start() {
-        if (started) {
+        if (waiting.get()) {
             return;
         }
-        started = true;
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> terminated = true));
+        waiting.set(true);
+        Runtime.getRuntime().addShutdownHook(new Thread(this::terminate));
 
-        while (!terminated) {
+        while (waiting.get()) {
             try {
                 //noinspection BusyWait
                 Thread.sleep(millis);
@@ -32,6 +33,6 @@ public class WaitUntilNotTerminated {
     }
 
     public void terminate() {
-        terminated = true;
+        waiting.set(false);
     }
 }
