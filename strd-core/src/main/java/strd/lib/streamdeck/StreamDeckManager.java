@@ -5,6 +5,7 @@ import strd.lib.spi.hid.HidLibrary;
 import strd.lib.spi.hid.StreamDeckHandle;
 import strd.lib.spi.hid.StreamDeckVariant;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -18,12 +19,13 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class StreamDeckManager {
     private static final Logger log = getLogger(StreamDeckManager.class);
 
-    private final HidLibrary hidLibrary;
     private static final Map<StreamDeckVariant, StreamDeckFactory> STREAM_DECK_FACTORIES =
             ServiceLoader.load(StreamDeckFactory.class)
                     .stream()
                     .map(ServiceLoader.Provider::get)
                     .collect(Collectors.toMap(StreamDeckFactory::creates, Function.identity()));
+
+    private final HidLibrary hidLibrary;
 
     public StreamDeckManager(HidLibrary hidLibrary) {
         this.hidLibrary = hidLibrary;
@@ -56,6 +58,23 @@ public class StreamDeckManager {
         } else {
             return STREAM_DECK_FACTORIES.get(streamDeckVariant).create(streamDeckHandle);
         }
-
     }
+
+    public void addListener(HidLibrary.DeviceListener listener) {
+        hidLibrary.addListener(listener);
+    }
+
+
+    public void removeListener(HidLibrary.DeviceListener listener) {
+        hidLibrary.removeListener(listener);
+    }
+
+    public void removeListeners() {
+        hidLibrary.removeListeners();
+    }
+
+    public void setPollingInterval(Duration duration) {
+        hidLibrary.setPollingInterval(duration);
+    }
+
 }

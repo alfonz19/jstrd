@@ -2,17 +2,32 @@ package strd.lib.hid;
 
 import purejavahidapi.HidDevice;
 import purejavahidapi.HidDeviceInfo;
+import reactor.core.Disposable;
+import reactor.core.publisher.Flux;
+import strd.lib.common.Constants;
 import strd.lib.common.exception.StrdException;
 import strd.lib.spi.hid.HidLibrary;
 import strd.lib.spi.hid.StreamDeckHandle;
 import strd.lib.spi.hid.StreamDeckVariant;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class PureJavaHid implements HidLibrary {
+
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PureJavaHid.class);
+
+    private final List<HidLibrary.DeviceListener> listeners = new ArrayList<>();
+    private Map<String, HidLibrary.StreamDeckInfo> existingDevices;
+    private Duration pollingDuration = Duration.ofSeconds(1);
+    private Disposable deviceDetectionFlux = null;
 
     @Override
     public List<StreamDeckInfo> findStreamDeckDevices() {
@@ -42,6 +57,77 @@ public class PureJavaHid implements HidLibrary {
         } catch (IOException e) {
             throw new StrdException(e);
         }
+    }
+
+    @Override
+    public void addListener(HidLibrary.DeviceListener listener) {
+        if (!isDeviceDetectionRunning()) {
+            existingDevices = findStreamDeckDevices().stream()
+                    .collect(Collectors.toMap(this::getDeviceNaturalId, Function.identity()));
+            deviceDetectionFlux = Flux.interval(pollingDuration).subscribe(e -> detectDeviceAddRemoveAndNotify());
+        }
+        listeners.add(listener);
+    }
+
+    @Override
+    public void removeListener(HidLibrary.DeviceListener listener) {
+        listeners.remove(listener);
+        if (listeners.isEmpty()) {
+            removeListeners();
+        }
+    }
+
+    @Override
+    public void removeListeners() {
+        if (isDeviceDetectionRunning()) {
+            deviceDetectionFlux.dispose();
+            deviceDetectionFlux = null;
+            existingDevices = null;
+        }
+        listeners.clear();
+    }
+
+    @Override
+    public void setPollingInterval(Duration duration) {
+        long durationAsMillis = duration.toMillis();
+        if (durationAsMillis < Constants.FASTEST_REFRESH_INTERVAL_MILLIS) {
+            duration = Duration.ofMillis(Constants.FASTEST_REFRESH_INTERVAL_MILLIS);
+            log.warn("Too quick refresh interval, resetting to {}", duration);
+        } else if (durationAsMillis > Constants.SLOWEST_REFRESH_INTERVAL_MILLIS) {
+            duration = Duration.ofMillis(Constants.SLOWEST_REFRESH_INTERVAL_MILLIS);
+            log.warn("Too slow refresh interval, resetting to {}", duration);
+        }
+
+        this.pollingDuration = duration;
+    }
+
+    private boolean isDeviceDetectionRunning() {
+        return deviceDetectionFlux != null;
+    }
+
+    private void detectDeviceAddRemoveAndNotify() {
+        List<HidLibrary.StreamDeckInfo> foundDevices = findStreamDeckDevices();
+        foundDevices.stream()
+                .filter(info -> !existingDevices.containsKey(getDeviceNaturalId(info)))
+                .forEach(info -> {
+                    listeners.forEach(listener -> listener.deviceAdded(info));
+                    existingDevices.put(getDeviceNaturalId(info), info);
+                });
+
+        for (Iterator<Map.Entry<String, StreamDeckInfo>> iterator = existingDevices.entrySet().iterator();
+             iterator.hasNext(); ) {
+            Map.Entry<String, HidLibrary.StreamDeckInfo> entry = iterator.next();
+            String naturalId = entry.getKey();
+            boolean deleted = foundDevices.stream().map(this::getDeviceNaturalId).noneMatch(e -> e.equals(naturalId));
+            if (deleted) {
+                iterator.remove();
+                listeners.forEach(listener -> listener.deviceRemoved(entry.getValue()));
+            }
+        }
+    }
+
+    private String getDeviceNaturalId(HidLibrary.StreamDeckInfo e) {
+        return e.getSerialNumberString() + ":::" + e.getProductString();
     }
 
     private static class PureJavaHidApiStreamDeckHandle implements StreamDeckHandle {

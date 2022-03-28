@@ -4,10 +4,10 @@ import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.function.Tuples;
 import strd.lib.common.exception.StrdException;
-import strd.lib.spi.hid.HidLibrary;
-import strd.lib.spi.hid.StreamDeckVariant;
 import strd.lib.iconpainter.IconPainter;
 import strd.lib.iconpainter.factory.IconPainterFactory;
+import strd.lib.spi.hid.HidLibrary;
+import strd.lib.spi.hid.StreamDeckVariant;
 import strd.lib.streamdeck.StreamDeck;
 import strd.lib.streamdeck.StreamDeckManager;
 import strd.lib.util.WaitUntilNotTerminated;
@@ -42,6 +42,7 @@ public class LibMain {
             Color.CYAN,
             Color.MAGENTA);
     private static final Logger log = LoggerFactory.getLogger(LibMain.class);
+    private final WaitUntilNotTerminated waitUntilNotTerminated = new WaitUntilNotTerminated(250);
 
     public static void main(String[] args) {
         new LibMain().run();
@@ -79,18 +80,34 @@ public class LibMain {
                         "-----All found streamdeck devices-----\n",
                         "--------------------------------------\n"));
         System.out.println(foundStreamDeckDevicesString);
-        System.out.println("Ready to go.");
 
+        streamDeckManager.addListener(new HidLibrary.DeviceListener() {
+            @Override
+            public void deviceAdded(HidLibrary.StreamDeckInfo streamDeckInfo) {
+                System.out.println("Connected device: \n"+streamDeckInfo);
+                waitUntilNotTerminated.terminate();
+                testRunMyStreamDeck(streamDeckManager, streamDeckInfo);
+            }
+
+            @Override
+            public void deviceRemoved(HidLibrary.StreamDeckInfo streamDeckInfo) {
+                System.out.println("Disconnected device: \n"+streamDeckInfo);
+            }
+        });
 
         streamDeckDevices.stream()
                 .filter(e -> e.getSerialNumberString().equals("DL49K1A69132"))
                 .findFirst()
                 .ifPresentOrElse(streamDeckInfo -> testRunMyStreamDeck(streamDeckManager, streamDeckInfo),
-                        errorMessage("Unable to find selected streamdeck."));
+                        () -> {
+                            System.err.println("Unable to find selected streamdeck, plug it in to begin, or ^C to quit");
+                            waitUntilNotTerminated.start();
+                        });
     }
 
-    private void testRunMyStreamDeck(StreamDeckManager streamDeckManager, HidLibrary.StreamDeckInfo streamDeckInfo) {
-        WaitUntilNotTerminated waitUntilNotTerminated = new WaitUntilNotTerminated(250);
+    private void testRunMyStreamDeck(StreamDeckManager streamDeckManager,
+                                     HidLibrary.StreamDeckInfo streamDeckInfo) {
+        System.out.println("Ready to go.");
 
         try (StreamDeck streamDeck = streamDeckManager.openConnection(streamDeckInfo)) {
             streamDeck.addButtonsStateUpdatedListener(new StreamDeck.ButtonStateListener.Adapter() {
