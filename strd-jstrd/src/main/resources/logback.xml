@@ -20,5 +20,7 @@
     <appender-ref ref="STDOUT"/>
   </root>
 
+  <logger name="strd.jstrd.picocli.TerminateCommand" level="off"/>
+  <logger name="strd.jstrd.util.singleinstance.JUniqueSingleInstance" level="off"/>
 
 </configuration>

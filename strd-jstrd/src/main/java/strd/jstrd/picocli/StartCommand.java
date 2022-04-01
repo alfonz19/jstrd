@@ -2,12 +2,12 @@ package strd.jstrd.picocli;
 
 import picocli.CommandLine;
 import strd.jstrd.Constants;
+import strd.jstrd.StreamDeckDaemon;
 import strd.jstrd.util.CliUtil;
 import strd.jstrd.util.singleinstance.JUniqueSingleInstance;
 import strd.jstrd.util.singleinstance.SingleInstance;
 import strd.jstrd.util.singleinstance.command.Command;
 import strd.jstrd.util.singleinstance.command.StartInstanceCommand;
-import strd.lib.util.WaitUntilNotTerminated;
 
 import java.io.File;
 
@@ -54,37 +54,80 @@ public class StartCommand /*implements Callable*/ implements Runnable {
     static class WithUIOptions {
         @CommandLine.Option(names = {"-o",
                 "--open-ui-on-start"}, description = "If UI is allowed, it will be opened upon start", defaultValue = "false")
-        private boolean openUi;
+        private boolean openUiOnStart;
     }
 
     @Override
     public void run() {
-        boolean started = new JUniqueSingleInstance(Constants.LOCK_ID)
-                .startSingleInstanceUsingCommand(new StartInstanceCommand("start") {
+        StartDaemonCommand startCommand = new StartDaemonCommand()
+                .setConfiguration(configuration)
+                .setOpenUiOnStartup(withOrWithoutUIExclusiveGroup.optionsForAppRunWithUiEnabled.openUiOnStart)
+                .setWithoutKeyHook(withoutKeyHook)
+                .setWithoutUi(withOrWithoutUIExclusiveGroup.optionsForAppRunWithUiDisabled.noUi)
+                .setWithoutSystray(withoutSystray);
 
-                    final WaitUntilNotTerminated wunt = new WaitUntilNotTerminated();
-
-                    @Override
-                    public void invoke() {
-                        wunt.start();
-                    }
-
-                    @Override
-                    public SingleInstance.CommandReply acceptCommand(Command command) {
-                        if (command.getCommandName().equals("terminate")) {
-                            log.debug("Terminating app");
-                            wunt.terminate();
-                            return new SingleInstance.CommandReply("terminated", true, "App was terminated.");
-                        } else {
-                            return new SingleInstance.CommandReply("Unknown command",
-                                    false,
-                                    "Unsupported command was issued, ignoring");
-                        }
-                    }
-                });
+        boolean started = new JUniqueSingleInstance(Constants.LOCK_ID).startSingleInstanceUsingCommand(startCommand);
 
         if (!started) {
             CliUtil.printError("Unable to start, app is probably already running");
+        }
+    }
+
+    private static class StartDaemonCommand extends StartInstanceCommand {
+
+        private final StreamDeckDaemon daemon = new StreamDeckDaemon();
+
+        private boolean withoutSystray;
+        private boolean withoutUi;
+        private boolean openUiOnStartup;
+        private boolean withoutKeyHook;
+        private File configuration;
+
+        public StartDaemonCommand() {
+            super("startDaemon");
+        }
+
+        @Override
+        public void invoke() {
+            daemon.start(configuration, withoutKeyHook);
+        }
+
+        @Override
+        public SingleInstance.CommandReply acceptCommand(Command command) {
+            if (command.getCommandName().equals("terminate")) {
+                log.debug("Terminating app");
+                daemon.stop();
+                return new SingleInstance.CommandReply("terminated", true, "App was terminated.");
+            } else {
+                return new SingleInstance.CommandReply("Unknown command",
+                        false,
+                        "Unsupported command was issued, ignoring");
+            }
+        }
+
+        public StartDaemonCommand setWithoutSystray(boolean withoutSystray) {
+            this.withoutSystray = withoutSystray;
+            return this;
+        }
+
+        public StartDaemonCommand setWithoutUi(boolean withoutUi) {
+            this.withoutUi = withoutUi;
+            return this;
+        }
+
+        public StartDaemonCommand setOpenUiOnStartup(boolean openUiOnStartup) {
+            this.openUiOnStartup = openUiOnStartup;
+            return this;
+        }
+
+        public StartDaemonCommand setWithoutKeyHook(boolean withoutKeyHook) {
+            this.withoutKeyHook = withoutKeyHook;
+            return this;
+        }
+
+        public StartDaemonCommand setConfiguration(File configuration) {
+            this.configuration = configuration;
+            return this;
         }
     }
 }
