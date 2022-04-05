@@ -16,6 +16,7 @@
     <module>strd-pure-java-hid</module>
     <module>strd-core</module>
     <module>strd-sample</module>
+    <module>strd-jstrd</module>
   </modules>
 
   <properties>
