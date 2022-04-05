@@ -20,7 +20,7 @@ public class WaitUntilNotTerminated {
             return;
         }
         waiting.set(true);
-        Runtime.getRuntime().addShutdownHook(new Thread(this::terminate));
+        ShutdownHooks.register(this::terminate);
 
         while (waiting.get()) {
             try {
