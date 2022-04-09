@@ -16,11 +16,13 @@
     </encoder>
   </appender>
 
-  <root level="all">
+  <root level="debug">
     <appender-ref ref="STDOUT"/>
   </root>
 
   <logger name="strd.jstrd.picocli.TerminateCommand" level="off"/>
   <logger name="strd.jstrd.util.singleinstance.JUniqueSingleInstance" level="off"/>
+  <logger name="strd.jstrd.util.CliUtil" level="off"/>
+  <logger name="reactor" level="off"/>
 
 </configuration>
