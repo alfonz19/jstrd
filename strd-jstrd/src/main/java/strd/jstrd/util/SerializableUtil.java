@@ -1,6 +1,6 @@
 package strd.jstrd.util;
 
-import strd.jstrd.exception.StrdAppException;
+import strd.jstrd.exception.JstrdException;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -19,7 +19,7 @@ public class SerializableUtil {
 
             return Base64.getEncoder().encodeToString(bo.toByteArray());
         } catch (Exception e) {
-            throw new StrdAppException("Failed to serialize serializable instance to base64", e);
+            throw new JstrdException("Failed to serialize serializable instance to base64", e);
         }
     }
 
@@ -34,7 +34,7 @@ public class SerializableUtil {
             ObjectInputStream si = new ObjectInputStream(bi);
             return (Serializable) si.readObject();
         } catch (Exception e) {
-            throw new StrdAppException("Failed to deserialize serializable instance from base64", e);
+            throw new JstrdException("Failed to deserialize serializable instance from base64", e);
         }
     }
 }
