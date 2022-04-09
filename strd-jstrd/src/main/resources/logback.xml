@@ -10,16 +10,17 @@
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
       <Pattern>
-        %d{yyyy-MM-dd HH:mm:ss.SSS} ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } --- [%15.15t] %-40.40logger{39} : %m%n%ex
+        %d{yyyy-MM-dd HH:mm:ss.SSS} ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } --- [%15.15t] %-80.80logger{79} : %m%n%ex
       </Pattern>
 
     </encoder>
   </appender>
 
-  <root level="debug">
+  <root level="warn">
     <appender-ref ref="STDOUT"/>
   </root>
 
+  <logger name="strd" level="debug"/>
   <logger name="strd.jstrd.picocli.TerminateCommand" level="off"/>
   <logger name="strd.jstrd.util.singleinstance.JUniqueSingleInstance" level="off"/>
   <logger name="strd.jstrd.util.CliUtil" level="off"/>

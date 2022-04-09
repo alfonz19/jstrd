@@ -1,0 +1,21 @@
+{
+  "devices": [
+    {
+      "serialNumber": "DL49K1A69132",
+      "updateTick": "PT1M",
+      "layout": {
+        "buttons": [
+          {
+            "index": 0,
+            "name": "whatever",
+            "description": "whatever",
+            "buttonType": "...",
+            "configuration": {
+              "action": "..."
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
