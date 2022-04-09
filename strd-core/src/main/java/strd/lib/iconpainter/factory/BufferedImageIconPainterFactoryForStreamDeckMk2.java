@@ -3,7 +3,7 @@ package strd.lib.iconpainter.factory;
 import strd.lib.spi.hid.StreamDeckVariant;
 import strd.lib.iconpainter.BufferedImageIconPainterForStreamDeckMk2;
 import strd.lib.iconpainter.IconPainter;
-import strd.lib.streamdeck.StreamDeck;
+import strd.lib.streamdeck.StreamDeckDevice;
 
 import java.io.InputStream;
 
@@ -14,21 +14,21 @@ public class BufferedImageIconPainterFactoryForStreamDeckMk2 extends AbstractBuf
     }
 
     @Override
-    public IconPainter create(StreamDeck streamDeck) {
+    public IconPainter create(StreamDeckDevice streamDeck) {
         return new BufferedImageIconPainterForStreamDeckMk2(getIconSize(streamDeck));
     }
 
     @Override
-    public IconPainter create(StreamDeck streamDeck, InputStream imageByteStream) {
+    public IconPainter create(StreamDeckDevice streamDeck, InputStream imageByteStream) {
         return new BufferedImageIconPainterForStreamDeckMk2(getIconSize(streamDeck), imageByteStream);
     }
 
     @Override
-    public IconPainter create(StreamDeck streamDeck, byte[] bytes) {
+    public IconPainter create(StreamDeckDevice streamDeck, byte[] bytes) {
         return new BufferedImageIconPainterForStreamDeckMk2(getIconSize(streamDeck), bytes);
     }
 
-    private int getIconSize(StreamDeck streamDeck) {
+    private int getIconSize(StreamDeckDevice streamDeck) {
         return streamDeck.getStreamDeckInfo().getStreamDeckVariant().getPixelCountPerIconSide();
     }
 }

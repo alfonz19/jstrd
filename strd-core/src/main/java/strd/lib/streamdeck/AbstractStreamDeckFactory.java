@@ -7,9 +7,9 @@ import java.util.function.Function;
 
 public class AbstractStreamDeckFactory implements StreamDeckFactory {
     private final StreamDeckVariant variant;
-    private final Function<StreamDeckHandle, StreamDeck> ctor;
+    private final Function<StreamDeckHandle, StreamDeckDevice> ctor;
 
-    public AbstractStreamDeckFactory(StreamDeckVariant variant, Function<StreamDeckHandle, StreamDeck> ctor) {
+    public AbstractStreamDeckFactory(StreamDeckVariant variant, Function<StreamDeckHandle, StreamDeckDevice> ctor) {
         this.variant = variant;
         this.ctor = ctor;
     }
@@ -20,7 +20,7 @@ public class AbstractStreamDeckFactory implements StreamDeckFactory {
     }
 
     @Override
-    public StreamDeck create(StreamDeckHandle streamDeckHandle) {
+    public StreamDeckDevice create(StreamDeckHandle streamDeckHandle) {
         return ctor.apply(streamDeckHandle);
     }
 

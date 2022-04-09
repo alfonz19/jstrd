@@ -5,6 +5,6 @@ import strd.lib.spi.hid.StreamDeckVariant;
 
 public interface StreamDeckFactory {
     StreamDeckVariant creates();
-    StreamDeck create(StreamDeckHandle streamDeckHandle);
+    StreamDeckDevice create(StreamDeckHandle streamDeckHandle);
 
 }

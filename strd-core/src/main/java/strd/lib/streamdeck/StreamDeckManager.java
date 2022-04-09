@@ -49,7 +49,7 @@ public class StreamDeckManager {
                 .collect(Collectors.toList());
     }
 
-    public StreamDeck openConnection(HidLibrary.StreamDeckInfo streamDeckInfo) {
+    public StreamDeckDevice openConnection(HidLibrary.StreamDeckInfo streamDeckInfo) {
         StreamDeckHandle streamDeckHandle = hidLibrary.createStreamDeckHandle(streamDeckInfo);
         StreamDeckVariant streamDeckVariant = streamDeckInfo.getStreamDeckVariant();
 

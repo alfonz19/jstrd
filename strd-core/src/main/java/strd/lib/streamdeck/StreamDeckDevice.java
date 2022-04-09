@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 
 @SuppressWarnings("unused")
-public interface StreamDeck extends AutoCloseable {
+public interface StreamDeckDevice extends AutoCloseable {
 
     HidLibrary.StreamDeckInfo getStreamDeckInfo();
     boolean isClosed();

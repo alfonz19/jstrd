@@ -8,7 +8,7 @@ import strd.lib.iconpainter.IconPainter;
 import strd.lib.iconpainter.factory.IconPainterFactory;
 import strd.lib.spi.hid.HidLibrary;
 import strd.lib.spi.hid.StreamDeckVariant;
-import strd.lib.streamdeck.StreamDeck;
+import strd.lib.streamdeck.StreamDeckDevice;
 import strd.lib.streamdeck.StreamDeckManager;
 import strd.lib.util.WaitUntilNotTerminated;
 
@@ -48,7 +48,7 @@ public class LibMain {
         new LibMain().run();
     }
 
-    private IconPainterFactory findIconPainter(StreamDeck streamDeck) {
+    private IconPainterFactory findIconPainter(StreamDeckDevice streamDeck) {
         return findIconPainter(streamDeck.getStreamDeckInfo().getStreamDeckVariant());
     }
 
@@ -109,8 +109,8 @@ public class LibMain {
                                      HidLibrary.StreamDeckInfo streamDeckInfo) {
         System.out.println("Ready to go.");
 
-        try (StreamDeck streamDeck = streamDeckManager.openConnection(streamDeckInfo)) {
-            streamDeck.addButtonsStateUpdatedListener(new StreamDeck.ButtonStateListener.Adapter() {
+        try (StreamDeckDevice streamDeck = streamDeckManager.openConnection(streamDeckInfo)) {
+            streamDeck.addButtonsStateUpdatedListener(new StreamDeckDevice.ButtonStateListener.Adapter() {
                 @Override
                 public void buttonStateUpdated(HidLibrary.StreamDeckInfo streamDeckInfo,
                                                int buttonIndex,
@@ -207,7 +207,7 @@ public class LibMain {
         return () -> System.err.println(message);
     }
 
-    public void colorsOnly(StreamDeck streamDeck) {
+    public void colorsOnly(StreamDeckDevice streamDeck) {
         IconPainterFactory iconPainter = findIconPainter(streamDeck);
 
         IntStream.range(0, streamDeck.getStreamDeckInfo().getStreamDeckVariant().getKeyCount()).forEach(index -> {
@@ -219,7 +219,7 @@ public class LibMain {
         });
     }
 
-    public void colorsWithSingleLineText(StreamDeck streamDeck) {
+    public void colorsWithSingleLineText(StreamDeckDevice streamDeck) {
         IconPainterFactory iconPainter = findIconPainter(streamDeck);
 
         IntStream.range(0, streamDeck.getStreamDeckInfo().getStreamDeckVariant().getKeyCount()).forEach(index -> {
@@ -241,7 +241,7 @@ public class LibMain {
         });
     }
 
-    public void colorsWithMultiLineText(StreamDeck streamDeck) {
+    public void colorsWithMultiLineText(StreamDeckDevice streamDeck) {
         IconPainterFactory iconPainter = findIconPainter(streamDeck);
 
         IntStream.range(0, streamDeck.getStreamDeckInfo().getStreamDeckVariant().getKeyCount()).forEach(index -> {
@@ -267,7 +267,7 @@ public class LibMain {
         });
     }
 
-    public void someImages(StreamDeck streamDeck) {
+    public void someImages(StreamDeckDevice streamDeck) {
         IconPainterFactory iconPainterFactory = findIconPainter(streamDeck);
         byte[] bytes = readPhotoFromFile("/magda.jpg");
 
@@ -297,7 +297,7 @@ public class LibMain {
 
     }
 
-    public void someImages2(StreamDeck streamDeck) {
+    public void someImages2(StreamDeckDevice streamDeck) {
         IconPainterFactory iconPainterFactory = findIconPainter(streamDeck);
         byte[] imageBytes = readPhotoFromFile("/magda.jpg");
         byte[] bytes = iconPainterFactory.create(streamDeck, imageBytes).toDeviceNativeFormat();
@@ -318,7 +318,7 @@ public class LibMain {
     }
 
     //hypothetical speedup
-    public void someImages3(StreamDeck streamDeck) {
+    public void someImages3(StreamDeckDevice streamDeck) {
         IconPainterFactory iconPainterFactory = findIconPainter(streamDeck);
         byte[] imageBytes = readPhotoFromFile("/magda.jpg");
         byte[] bytes = iconPainterFactory.create(streamDeck, imageBytes).toDeviceNativeFormat();
@@ -338,7 +338,7 @@ public class LibMain {
 
     }
 
-    public void someImagesParallel(StreamDeck streamDeck) {
+    public void someImagesParallel(StreamDeckDevice streamDeck) {
         IconPainterFactory iconPainterFactory = findIconPainter(streamDeck);
         byte[] bytes = readPhotoFromFile("/magda.jpg");
 
@@ -376,7 +376,7 @@ public class LibMain {
         }
     }
 
-    public void colorsWithSomeGraphics(StreamDeck streamDeck) {
+    public void colorsWithSomeGraphics(StreamDeckDevice streamDeck) {
         IconPainterFactory iconPainter = findIconPainter(streamDeck);
 
         IntStream.range(0, streamDeck.getStreamDeckInfo().getStreamDeckVariant().getKeyCount()).forEach(index -> {

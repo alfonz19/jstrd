@@ -18,7 +18,7 @@ import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-public abstract class AbstractStreamDeck implements StreamDeck {
+public abstract class AbstractStreamDeck implements StreamDeckDevice {
     private static final Logger log = getLogger(AbstractStreamDeck.class);
 
     private final StreamDeckHandle streamDeckHandle;
