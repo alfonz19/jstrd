@@ -14,7 +14,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 @CommandLine.Command(description = "Options regarding stopping app",
         usageHelpWidth = 120,
         name = "stop")
-public class TerminateCommand implements Runnable{
+public class TerminateCommand extends GlobalCommandParent implements Runnable{
 
     private static final Logger log = getLogger(TerminateCommand.class);
 

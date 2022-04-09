@@ -17,9 +17,7 @@ import static org.slf4j.LoggerFactory.getLogger;
         usageHelpWidth = 120,
         name = "get-all-hid-libraries",
         aliases = "gahl")
-public class GetAllHidLibrariesCommand  implements Callable<Integer> {
-
-    private static final Logger log = getLogger(GetAllHidLibrariesCommand.class);
+public class GetAllHidLibrariesCommand extends GlobalCommandParent implements Callable<Integer> {
 
     @Override
     public Integer call() {

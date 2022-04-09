@@ -19,7 +19,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 @CommandLine.Command(description = "Options regarding starting app",
         usageHelpWidth = 120,
         name = "start")
-public class StartCommand /*implements Callable*/ implements Runnable {
+public class StartCommand extends GlobalCommandParent implements Runnable {
 
     private static final Logger log = getLogger(StartCommand.class);
 
