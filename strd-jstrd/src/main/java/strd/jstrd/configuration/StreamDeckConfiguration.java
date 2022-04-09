@@ -12,16 +12,28 @@ import java.util.Map;
 public class StreamDeckConfiguration {
 
     @Valid
-    public List<DeviceConfiguration> devices;
+    private List<DeviceConfiguration> devices;
+
+    public List<DeviceConfiguration> getDevices() {
+        return devices;
+    }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class DeviceConfiguration {
-        public String serialNumber;
+        private String serialNumber;
 
-        public Duration updateInterval;
+        private Duration updateInterval;
 
         @Valid
         public LeafOrNonLeaf layout;
+
+        public String getSerialNumber() {
+            return serialNumber;
+        }
+
+        public Duration getUpdateInterval() {
+            return updateInterval;
+        }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

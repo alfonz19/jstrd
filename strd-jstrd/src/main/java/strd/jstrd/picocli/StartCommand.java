@@ -1,15 +1,22 @@
 package strd.jstrd.picocli;
 
 import picocli.CommandLine;
+import strd.jstrd.CliMessages;
 import strd.jstrd.Constants;
-import strd.jstrd.StreamDeckDaemon;
+import strd.jstrd.streamdeck.Daemon;
+import strd.jstrd.configuration.ConfigurationParser;
+import strd.jstrd.configuration.StreamDeckConfiguration;
+import strd.jstrd.exception.JstrdException;
 import strd.jstrd.util.CliUtil;
+import strd.jstrd.util.ServiceLoaderUtil;
 import strd.jstrd.util.singleinstance.JUniqueSingleInstance;
 import strd.jstrd.util.singleinstance.SingleInstance;
 import strd.jstrd.util.singleinstance.command.Command;
 import strd.jstrd.util.singleinstance.command.StartInstanceCommand;
+import strd.lib.spi.hid.HidLibrary;
 
 import java.io.File;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 
@@ -32,7 +39,7 @@ public class StartCommand extends GlobalCommandParent implements Runnable {
     private boolean withoutKeyHook;
 
     @CommandLine.Option(names = {"-c", "--load-configuration"}, description = "Configuration to load")
-    private File configuration;
+    private File configurationFile;
 
     @CommandLine.ArgGroup(exclusive = true, multiplicity = "0..1")
     private final WithOrWithoutUIExclusiveGroup withOrWithoutUIExclusiveGroup = new WithOrWithoutUIExclusiveGroup();
@@ -59,12 +66,18 @@ public class StartCommand extends GlobalCommandParent implements Runnable {
 
     @Override
     public void run() {
-        StartDaemonCommand startCommand = new StartDaemonCommand()
-                .setConfiguration(configuration)
-                .setOpenUiOnStartup(withOrWithoutUIExclusiveGroup.optionsForAppRunWithUiEnabled.openUiOnStart)
-                .setWithoutKeyHook(withoutKeyHook)
-                .setWithoutUi(withOrWithoutUIExclusiveGroup.optionsForAppRunWithUiDisabled.noUi)
-                .setWithoutSystray(withoutSystray);
+        Optional<HidLibrary> library = ServiceLoaderUtil.getLibrary(HidLibrary.class);
+        if (library.isEmpty()) {
+            CliMessages.error_unableToFindAnyHidLibrary();
+            throw new JstrdException("no hid library found");
+        }
+
+        StartDaemonCommand startCommand = new StartDaemonCommand(library.get(),
+                configurationFile,
+                withoutSystray,
+                withOrWithoutUIExclusiveGroup.optionsForAppRunWithUiDisabled.noUi,
+                withOrWithoutUIExclusiveGroup.optionsForAppRunWithUiEnabled.openUiOnStart,
+                withoutKeyHook);
 
         boolean started = new JUniqueSingleInstance(Constants.LOCK_ID).startSingleInstanceUsingCommand(startCommand);
 
@@ -75,21 +88,46 @@ public class StartCommand extends GlobalCommandParent implements Runnable {
 
     private static class StartDaemonCommand extends StartInstanceCommand {
 
-        private final StreamDeckDaemon daemon = new StreamDeckDaemon();
+        private final Daemon daemon;
 
-        private boolean withoutSystray;
-        private boolean withoutUi;
-        private boolean openUiOnStartup;
-        private boolean withoutKeyHook;
-        private File configuration;
+        private final boolean withoutSystray;
+        private final boolean withoutUi;
+        private final boolean openUiOnStartup;
+        private final boolean withoutKeyHook;
+        private final File configurationFile;
+        private final HidLibrary library;
 
-        public StartDaemonCommand() {
+        public StartDaemonCommand(HidLibrary library,
+                                  File configurationFile,
+                                  boolean withoutSystray,
+                                  boolean withoutUi,
+                                  boolean openUiOnStartup,
+                                  boolean withoutKeyHook) {
             super("startDaemon");
+            this.withoutSystray = withoutSystray;
+            this.withoutUi = withoutUi;
+            this.openUiOnStartup = openUiOnStartup;
+            this.withoutKeyHook = withoutKeyHook;
+            this.configurationFile = configurationFile;
+            this.library = library;
+            daemon = new Daemon(library, withoutKeyHook);
+            daemon.setConfiguration(getStreamDeckConfiguration());
         }
 
         @Override
         public void invoke() {
-            daemon.start(configuration, withoutKeyHook);
+            daemon.start();
+            //TODO MMUCHA: implement.
+//            initUI(withoutSystray, withoutUi, openUiOnStartup);
+        }
+
+        private StreamDeckConfiguration getStreamDeckConfiguration() {
+            if (this.configurationFile == null) {
+                CliUtil.warning("Starting with empty configuration file");
+                return new StreamDeckConfiguration();
+            } else {
+                return new ConfigurationParser().parse(this.configurationFile);
+            }
         }
 
         @Override
@@ -103,31 +141,6 @@ public class StartCommand extends GlobalCommandParent implements Runnable {
                         false,
                         "Unsupported command was issued, ignoring");
             }
-        }
-
-        public StartDaemonCommand setWithoutSystray(boolean withoutSystray) {
-            this.withoutSystray = withoutSystray;
-            return this;
-        }
-
-        public StartDaemonCommand setWithoutUi(boolean withoutUi) {
-            this.withoutUi = withoutUi;
-            return this;
-        }
-
-        public StartDaemonCommand setOpenUiOnStartup(boolean openUiOnStartup) {
-            this.openUiOnStartup = openUiOnStartup;
-            return this;
-        }
-
-        public StartDaemonCommand setWithoutKeyHook(boolean withoutKeyHook) {
-            this.withoutKeyHook = withoutKeyHook;
-            return this;
-        }
-
-        public StartDaemonCommand setConfiguration(File configuration) {
-            this.configuration = configuration;
-            return this;
         }
     }
 }
