@@ -2,6 +2,9 @@ package strd.jstrd.util;
 
 import strd.lib.util.ShutdownHooks;
 
+import java.util.Collection;
+import java.util.stream.Collectors;
+
 import org.fusesource.jansi.AnsiConsole;
 import org.slf4j.Logger;
 
@@ -11,6 +14,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * helper class for printing to terminal
  */
+@SuppressWarnings("unused")
 public class CliUtil {
 
     private static final Logger log = getLogger(CliUtil.class);
@@ -42,7 +46,11 @@ public class CliUtil {
 
     public static void printSuccess(String message) {
         cliOutput.printSuccess(message);
-    };
+    }
+
+    public static void printList(String title, Collection<String> items) {
+        cliOutput.printList(title, items);
+    }
 
     private static class PlainTextCliOutput implements CliOutput {
         @Override
@@ -53,6 +61,14 @@ public class CliUtil {
         @Override
         public void printSuccess(String message) {
             System.out.println("[SUCCESS] "+message);
+        }
+
+        @Override
+        public void printList(String title, Collection<String> items) {
+            String newLine = System.lineSeparator();
+            String text =
+                    items.stream().map(e -> "\t• " + e).collect(Collectors.joining(newLine, title + ":" + newLine, ""));
+            System.out.println(text);
         }
     }
     private static class JansiCliOutput implements CliOutput {
@@ -70,6 +86,14 @@ public class CliUtil {
         @Override
         public void printSuccess(String message) {
             System.err.println(ansi().fgGreen().a("[SUCCESS] ").reset().a(message));
+        }
+
+        @Override
+        public void printList(String title, Collection<String> items) {
+            String newLine = System.lineSeparator();
+            String text =
+                    items.stream().map(e -> "\t• " + e).collect(Collectors.joining(newLine, title + ":" + newLine, ""));
+            System.out.println(text);
         }
 
         private void enableJansi() {

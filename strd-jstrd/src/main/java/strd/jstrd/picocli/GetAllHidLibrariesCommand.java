@@ -1,0 +1,35 @@
+package strd.jstrd.picocli;
+
+import picocli.CommandLine;
+import strd.jstrd.CliMessages;
+import strd.jstrd.util.CliUtil;
+import strd.jstrd.util.ServiceLoaderUtil;
+import strd.lib.spi.hid.HidLibrary;
+
+import java.util.Set;
+import java.util.concurrent.Callable;
+
+import org.slf4j.Logger;
+
+import static org.slf4j.LoggerFactory.getLogger;
+
+@CommandLine.Command(description = "Prints all available HID libraries",
+        usageHelpWidth = 120,
+        name = "get-all-hid-libraries",
+        aliases = "gahl")
+public class GetAllHidLibrariesCommand  implements Callable<Integer> {
+
+    private static final Logger log = getLogger(GetAllHidLibrariesCommand.class);
+
+    @Override
+    public Integer call() {
+        Set<String> availableLibraries = ServiceLoaderUtil.getAvailableLibraries(HidLibrary.class);
+        if (availableLibraries.isEmpty()) {
+            CliMessages.error_unableToFindAnyHidLibrary();
+            return 1;
+        } else {
+            CliUtil.printList("All available HID libraries", availableLibraries);
+            return 0;
+        }
+    }
+}

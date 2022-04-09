@@ -9,7 +9,8 @@ import picocli.CommandLine;
         versionProvider = VersionProvider.class,
         subcommands = {
                 StartCommand.class,
-                TerminateCommand.class})
+                TerminateCommand.class,
+                GetAllHidLibrariesCommand.class})
 public class MainCommand  {
 
 }
