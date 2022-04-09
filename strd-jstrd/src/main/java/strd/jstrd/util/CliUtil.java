@@ -52,6 +52,14 @@ public class CliUtil {
         cliOutput.printList(title, items);
     }
 
+    public static void warning(String message) {
+        cliOutput.printWarning(message);
+    }
+
+    public static void printException(Exception ex) {
+        cliOutput.printException(ex);
+    }
+
     private static class PlainTextCliOutput implements CliOutput {
         @Override
         public void printError(String message) {
@@ -59,8 +67,18 @@ public class CliUtil {
         }
 
         @Override
+        public void printException(Exception ex) {
+            printError("Application failed with exception. ExceptionMessage: "+ex.getMessage());
+        }
+
+        @Override
         public void printSuccess(String message) {
             System.out.println("[SUCCESS] "+message);
+        }
+
+        @Override
+        public void printWarning(String message) {
+            System.err.println("[WARNING] "+message);
         }
 
         @Override
@@ -84,8 +102,18 @@ public class CliUtil {
         }
 
         @Override
+        public void printException(Exception ex) {
+            printError("Application failed: "+ex.getMessage());
+        }
+
+        @Override
         public void printSuccess(String message) {
             System.err.println(ansi().fgGreen().a("[SUCCESS] ").reset().a(message));
+        }
+
+        @Override
+        public void printWarning(String message) {
+            System.err.println(ansi().fgYellow().a("[WARNING] ").reset().a(message));
         }
 
         @Override

@@ -13,8 +13,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 public class Main {
 
-    private static final org.slf4j.Logger log = getLogger(Main.class);
-
     public static void main(String[] args) {
         bridgeJavaUtilLoggingToSlf4j();
 
@@ -26,8 +24,7 @@ public class Main {
         MainCommand mainCommand = new MainCommand();
         CommandLine commandLine = new CommandLine(mainCommand);
         commandLine.setExecutionExceptionHandler((ex, cmdln, parseResult) -> {
-            log.error("Unexpected exception during processing cli commands", ex);
-            CliUtil.printError("Unexpected exception during processing cli commands");
+            CliUtil.printException(ex);
             return CommandLine.ExitCode.SOFTWARE;
         });
 
