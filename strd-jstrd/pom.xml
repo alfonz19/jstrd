@@ -24,6 +24,11 @@
     </dependency>
 
     <dependency>
+      <groupId>alfonz19.strd</groupId>
+      <artifactId>strd-pure-java-hid</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
@@ -174,6 +179,8 @@
                     <exclude>META-INF/NOTICE</exclude>
                     <exclude>META-INF/NOTICE.txt</exclude>
                     <exclude>META-INF/NOTICE.md</exclude>
+                    <exclude>META-INF/AL2.0</exclude>
+                    <exclude>META-INF/LGPL2.1</exclude>
 
                   </excludes>
                 </filter>
