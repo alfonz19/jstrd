@@ -225,7 +225,7 @@ public abstract class AbstractBufferedImageIconPainter implements IconPainter {
 
     @Override
     public IconPainter drawImage(InputStream inputStream) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        throw new UnsupportedOperationException("Not implemented yet");//TODO MMUCHA: implement!!
     }
 
     @Override

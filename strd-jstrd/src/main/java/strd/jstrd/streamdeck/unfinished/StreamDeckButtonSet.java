@@ -1,6 +1,10 @@
 package strd.jstrd.streamdeck.unfinished;
 
+import strd.jstrd.streamdeck.unfinished.button.Button;
+
 import java.util.Arrays;
+import java.util.function.Function;
+import java.util.stream.IntStream;
 
 /**
  * Representation of list of buttons, as they are currently is / previously were made visible. Allowing some 'locking'
@@ -10,14 +14,27 @@ import java.util.Arrays;
  * decisions, if 'someone' can set the button. For example, it wants to set all top row buttons or nothing.
  */
 public interface StreamDeckButtonSet {
+    int getMaxIndex();
+    
     boolean isAvailable(int index);
-
-    default boolean isAvailable(int... index) {
-        return Arrays.stream(index).boxed().map(this::isAvailable).reduce(true, (a, b)->a && b);
-    }
 
     Button get(int index);
 
     void set(int index, Button button);
 
+    default boolean isAvailable(int... index) {
+        return Arrays.stream(index).boxed().map(this::isAvailable).reduce(true, (a, b)->a && b);
+    }
+
+    default void setIfAvailable(int index, Function<Integer, Button> getButtonFunction) {
+        if (isAvailable(index)) {
+            set(index, getButtonFunction.apply(index));
+        }
+    }
+
+    default void setButtonsIfAvailable(Function<Integer, Button> get) {
+        IntStream.rangeClosed(0, getMaxIndex()).forEach(index->{
+            setIfAvailable(index, get);
+        });
+    }
 }

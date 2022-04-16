@@ -19,7 +19,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class Daemon {
     private static final Logger log = getLogger(Daemon.class);
 
-    private final WaitUntilNotTerminated wunt = new WaitUntilNotTerminated();
+    private final WaitUntilNotTerminated wunt = new WaitUntilNotTerminated(1000);
     private StreamDeckConfiguration configuration = new StreamDeckConfiguration();
     private final StreamDeckManager streamDeckManager;
     private final Map<Object, StreamDeck> registeredDevices = new HashMap<>();
@@ -40,6 +40,7 @@ public class Daemon {
         //register already plugged in devices.
         streamDeckManager.findStreamDeckDevices().forEach(listener::deviceAdded);
 
+        //just spin wait on main thread to avoid termination.
         wunt.start();
     }
 
@@ -54,10 +55,10 @@ public class Daemon {
 //        go over each device configuration in configuration instance
         configuration.getDevices().forEach(deviceConfig -> {
             //look for registered device using that configuration
-            StreamDeck streamDeckSomething = registeredDevices.get(deviceConfig.getSerialNumber());
+            StreamDeck streamDeck = registeredDevices.get(deviceConfig.getSerialNumber());
             //and if we have one, update its configuration.
-            if (streamDeckSomething != null) {
-                streamDeckSomething.setConfiguration(deviceConfig);
+            if (streamDeck != null) {
+                streamDeck.setConfiguration(deviceConfig);
             }
         });
     }
