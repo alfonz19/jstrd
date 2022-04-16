@@ -2,7 +2,7 @@
   "devices": [
     {
       "serialNumber": "DL49K1A69132",
-      "updateTick": "PT1M",
+      "updateInterval": "PT3S",
       "layout": {
         "buttons": [
           {

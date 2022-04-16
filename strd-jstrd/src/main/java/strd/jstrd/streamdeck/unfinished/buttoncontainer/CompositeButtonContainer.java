@@ -5,6 +5,7 @@ import strd.lib.iconpainter.IconPainter;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Button container, which contains other button containers.
@@ -27,7 +28,7 @@ public class CompositeButtonContainer implements ButtonContainer {
     }
 
     @Override
-    public void preload(IconPainter iconPainter) {
-        containerList.forEach(e->e.preload(iconPainter));
+    public void preload(Supplier<IconPainter> iconPainterSupplier) {
+        containerList.forEach(e->e.preload(iconPainterSupplier));
     }
 }

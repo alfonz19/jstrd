@@ -4,6 +4,7 @@ import strd.jstrd.streamdeck.unfinished.StreamDeckButtonSet;
 import strd.lib.iconpainter.IconPainter;
 
 import java.time.Instant;
+import java.util.function.Supplier;
 
 public interface ButtonContainer {
     /**
@@ -17,7 +18,7 @@ public interface ButtonContainer {
 
     /**
      * Called during init phase, so that static stuff can be preload and cached for speedup.
-     * @param iconPainter
+     * @param iconPainterSupplier
      */
-    void preload(IconPainter iconPainter);
+    void preload(Supplier<IconPainter> iconPainterSupplier);
 }

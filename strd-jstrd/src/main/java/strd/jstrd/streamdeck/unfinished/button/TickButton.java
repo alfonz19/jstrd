@@ -13,32 +13,25 @@ import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-public class ClockButton implements Button {
+public class TickButton implements Button {
 
-    private static final Logger log = getLogger(ClockButton.class);
+    private static final Logger log = getLogger(TickButton.class);
 
-    private String timeString;
-    private boolean needsUpdate;
+    private int tick = 0;
     private IconPainter iconPainter;
 
     @Override
     public void tick(Instant instant) {
-        String oldTimeString = timeString;
-        timeString = LocalTime.ofInstant(instant, ZoneId.systemDefault())
-                .truncatedTo(ChronoUnit.SECONDS)
-                .format(DateTimeFormatter.ISO_TIME);
-        needsUpdate = oldTimeString == null || !oldTimeString.equals(timeString);
-        log.debug("Updating timestring to \"{}\"", timeString);
+        tick++;
     }
 
     @Override
     public byte[] draw() {
-        log.debug("Drawing \"{}\"", timeString);
-        needsUpdate = false;
+        log.debug("Drawing tick \"{}\"", tick);
         iconPainter.fillWholeIcon(0,0,0);
         iconPainter.setColor(255,255,255);
-        //TODO MMUCHA: not necessary to calculate size every time.
-        iconPainter.writeTextCentered(timeString);
+
+        iconPainter.writeTextCentered(""+tick);
         return iconPainter.toDeviceNativeFormat();
     }
 
@@ -49,7 +42,7 @@ public class ClockButton implements Button {
 
     @Override
     public boolean needsUpdate() {
-        return needsUpdate;
+        return true;
     }
 
     @Override
@@ -59,6 +52,6 @@ public class ClockButton implements Button {
 
     @Override
     public void close() {
-        this.iconPainter.close();
+        iconPainter.close();
     }
 }

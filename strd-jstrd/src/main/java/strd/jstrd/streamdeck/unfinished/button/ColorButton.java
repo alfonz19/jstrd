@@ -3,12 +3,14 @@ package strd.jstrd.streamdeck.unfinished.button;
 import strd.lib.iconpainter.IconPainter;
 
 import java.time.Instant;
+import java.util.function.Supplier;
 
 public class ColorButton implements Button {
 
     private final int red;
     private final int green;
     private final int blue;
+    private byte[] iconBytes;
 
     public ColorButton() {
         this(0, 0, 0);
@@ -26,12 +28,29 @@ public class ColorButton implements Button {
     }
 
     @Override
-    public void draw() {
-        throw new UnsupportedOperationException("Not implemented yet");//TODO MMUCHA: implement!!
+    public byte[] draw() {
+        return iconBytes;
     }
 
     @Override
-    public void preload(IconPainter iconPainter) {
-        byte[] bytes = iconPainter.fillWholeIcon(red, green, blue).toDeviceNativeFormat();
+    public void preload(Supplier<IconPainter> iconPainterSupplier) {
+        try (IconPainter iconPainter = iconPainterSupplier.get()) {
+            iconBytes = iconPainter.fillWholeIcon(red, green, blue).toDeviceNativeFormat();
+        }
+    }
+
+    @Override
+    public boolean needsUpdate() {
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Color button r=%s, g=%d, b=%d", red, green, blue);
+    }
+
+    @Override
+    public void close() {
+        //do nothing.
     }
 }

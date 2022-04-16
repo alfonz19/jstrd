@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.validation.Valid;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -12,7 +13,7 @@ import java.util.Map;
 public class StreamDeckConfiguration {
 
     @Valid
-    private List<DeviceConfiguration> devices;
+    private List<DeviceConfiguration> devices = new ArrayList<>();
 
     public List<DeviceConfiguration> getDevices() {
         return devices;

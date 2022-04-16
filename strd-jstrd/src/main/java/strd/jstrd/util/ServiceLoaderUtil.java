@@ -13,9 +13,9 @@ public class ServiceLoaderUtil {
     private ServiceLoaderUtil() {
     }
 
-    public static <T> Optional<T> getLibrary(Class<T> libraryInterface, Class<? extends T> specificClass) {
+    public static <T> Optional<T> getLibrary(Class<T> libraryInterface, String specificClassName) {
         return loadInstances(libraryInterface)
-                .filter(e -> e.getClass().equals(specificClass))
+                .filter(e -> e.getClass().getName().equals(specificClassName))
                 .findFirst();
     }
 

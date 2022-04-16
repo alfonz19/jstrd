@@ -13,6 +13,7 @@ import strd.jstrd.util.singleinstance.JUniqueSingleInstance;
 import strd.jstrd.util.singleinstance.SingleInstance;
 import strd.jstrd.util.singleinstance.command.Command;
 import strd.jstrd.util.singleinstance.command.StartInstanceCommand;
+import strd.lib.iconpainter.factory.IconPainterFactory;
 import strd.lib.spi.hid.HidLibrary;
 
 import java.io.File;
@@ -66,13 +67,20 @@ public class StartCommand extends GlobalCommandParent implements Runnable {
 
     @Override
     public void run() {
-        Optional<HidLibrary> library = ServiceLoaderUtil.getLibrary(HidLibrary.class);
-        if (library.isEmpty()) {
+        Optional<HidLibrary> hidLibrary = ServiceLoaderUtil.getLibrary(HidLibrary.class);
+        if (hidLibrary.isEmpty()) {
             CliMessages.error_unableToFindAnyHidLibrary();
             throw new JstrdException("no hid library found");
         }
 
-        StartDaemonCommand startCommand = new StartDaemonCommand(library.get(),
+        Optional<IconPainterFactory> iconPainterFactory = ServiceLoaderUtil.getLibrary(IconPainterFactory.class);
+        if (iconPainterFactory.isEmpty()) {
+            CliMessages.error_unableToFindAnyIconPainterLibrary();
+            throw new JstrdException("no icon painter library found");
+        }
+
+        StartDaemonCommand startCommand = new StartDaemonCommand(hidLibrary.get(),
+                iconPainterFactory.get(),
                 configurationFile,
                 withoutSystray,
                 withOrWithoutUIExclusiveGroup.optionsForAppRunWithUiDisabled.noUi,
@@ -95,9 +103,9 @@ public class StartCommand extends GlobalCommandParent implements Runnable {
         private final boolean openUiOnStartup;
         private final boolean withoutKeyHook;
         private final File configurationFile;
-        private final HidLibrary library;
 
         public StartDaemonCommand(HidLibrary library,
+                                  IconPainterFactory iconPainterFactory,
                                   File configurationFile,
                                   boolean withoutSystray,
                                   boolean withoutUi,
@@ -109,8 +117,7 @@ public class StartCommand extends GlobalCommandParent implements Runnable {
             this.openUiOnStartup = openUiOnStartup;
             this.withoutKeyHook = withoutKeyHook;
             this.configurationFile = configurationFile;
-            this.library = library;
-            daemon = new Daemon(library, withoutKeyHook);
+            daemon = new Daemon(library, iconPainterFactory, withoutKeyHook);
             daemon.setConfiguration(getStreamDeckConfiguration());
         }
 

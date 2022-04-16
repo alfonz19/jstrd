@@ -6,6 +6,10 @@ import java.util.Arrays;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
+import org.slf4j.Logger;
+
+import static org.slf4j.LoggerFactory.getLogger;
+
 /**
  * Representation of list of buttons, as they are currently is / previously were made visible. Allowing some 'locking'
  * behavior, so that tree structure can compete to set what buttons are visible, but not overwrite each other request.
@@ -14,11 +18,11 @@ import java.util.stream.IntStream;
  * decisions, if 'someone' can set the button. For example, it wants to set all top row buttons or nothing.
  */
 public interface StreamDeckButtonSet {
-    int getMaxIndex();
+    int getButtonCount();
     
     boolean isAvailable(int index);
 
-    Button get(int index);
+//    Button get(int index);
 
     void set(int index, Button button);
 
@@ -28,13 +32,20 @@ public interface StreamDeckButtonSet {
 
     default void setIfAvailable(int index, Function<Integer, Button> getButtonFunction) {
         if (isAvailable(index)) {
-            set(index, getButtonFunction.apply(index));
+            Button button = getButtonFunction.apply(index);
+            getLogger(StreamDeckButtonSet.class).debug("Setting button {} at index {}", button, index);
+
+            set(index, button);
         }
     }
 
-    default void setButtonsIfAvailable(Function<Integer, Button> get) {
+    default void setButtonsIfAvailable(Function<Integer, Button> buttonForIndexFunction) {
         IntStream.rangeClosed(0, getMaxIndex()).forEach(index->{
-            setIfAvailable(index, get);
+            setIfAvailable(index, buttonForIndexFunction);
         });
+    }
+
+    default int getMaxIndex() {
+        return getButtonCount() -1;
     }
 }

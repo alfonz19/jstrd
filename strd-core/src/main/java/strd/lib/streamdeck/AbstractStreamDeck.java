@@ -191,6 +191,8 @@ public abstract class AbstractStreamDeck implements StreamDeckDevice {
             Disposable commandFlux = Flux.<StreamDeckCommand>create(sink -> consumer = sink::next)
                     .publishOn(scheduler)
                     .doOnNext(e -> e.processCommand(streamDeckHandle))
+                    .onErrorContinue((throwable, object)-> log.error("Command caused exception", throwable))
+                    .doOnComplete(()->log.warn("Command processor halted!"))
                     .subscribe();
         }
 

@@ -56,7 +56,7 @@ public class CliUtil {
         cliOutput.printWarning(message);
     }
 
-    public static void printException(Exception ex) {
+    public static void printException(Throwable ex) {
         cliOutput.printException(ex);
     }
 
@@ -67,7 +67,7 @@ public class CliUtil {
         }
 
         @Override
-        public void printException(Exception ex) {
+        public void printException(Throwable ex) {
             printError("Application failed with exception. ExceptionMessage: "+ex.getMessage());
         }
 
@@ -102,7 +102,7 @@ public class CliUtil {
         }
 
         @Override
-        public void printException(Exception ex) {
+        public void printException(Throwable ex) {
             printError("Application failed: "+ex.getMessage());
         }
 

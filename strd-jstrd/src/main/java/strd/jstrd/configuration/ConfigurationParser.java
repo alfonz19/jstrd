@@ -1,8 +1,8 @@
 package strd.jstrd.configuration;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import strd.jstrd.exception.InvalidSteamDeckConfigurationException;
 import strd.jstrd.exception.JstrdException;
+import strd.jstrd.util.JacksonUtil;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
@@ -55,7 +55,7 @@ public class ConfigurationParser {
     }
 
     public StreamDeckConfiguration parse(String json) {
-        StreamDeckConfiguration streamDeckConfiguration = deserializeJson(json);
+        StreamDeckConfiguration streamDeckConfiguration = JacksonUtil.deserializeJson(json);
 
         Set<ConstraintViolation<StreamDeckConfiguration>> validationResult =
                 VALIDATOR.validate(streamDeckConfiguration);
@@ -67,11 +67,4 @@ public class ConfigurationParser {
         }
     }
 
-    private StreamDeckConfiguration deserializeJson(String json) {
-        try {
-            return new ObjectMapper().readValue(json, StreamDeckConfiguration.class);
-        } catch (IOException e) {
-            throw new JstrdException("Unable to deserialize streamdeck configuration data", e);
-        }
-    }
 }

@@ -64,7 +64,10 @@ public class PureJavaHid implements HidLibrary {
         if (!isDeviceDetectionRunning()) {
             existingDevices = findStreamDeckDevices().stream()
                     .collect(Collectors.toMap(this::getDeviceNaturalId, Function.identity()));
-            deviceDetectionFlux = Flux.interval(pollingDuration).subscribe(e -> detectDeviceAddRemoveAndNotify());
+            deviceDetectionFlux = Flux.interval(pollingDuration).subscribe(e -> detectDeviceAddRemoveAndNotify(), e->{
+                //TODO MMUCHA: can we somehow throw exception?
+                log.error("Unexpected exception", e);
+            });
         }
         listeners.add(listener);
     }
