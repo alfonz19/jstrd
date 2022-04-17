@@ -208,19 +208,21 @@ public class LibMain {
     }
 
     public void colorsOnly(StreamDeckDevice streamDeck) {
-        IconPainterFactory iconPainter = findIconPainter(streamDeck);
+        IconPainterFactory iconPainterFactory = findIconPainter(streamDeck);
 
         IntStream.range(0, streamDeck.getStreamDeckInfo().getStreamDeckVariant().getKeyCount()).forEach(index -> {
             Color color = COLORS_FOR_BUTTONS.get(index % COLORS_FOR_BUTTONS.size());
-            byte[] buttonImage = iconPainter.create(streamDeck)
-                    .fillWholeIcon(color.getRed(), color.getGreen(), color.getBlue())
-                    .toDeviceNativeFormat();
-            streamDeck.setButtonImage((byte)index, buttonImage);
+            try (IconPainter iconPainter = iconPainterFactory.create(streamDeck)) {
+                byte[] buttonImage = iconPainter
+                        .fillWholeIcon(color.getRed(), color.getGreen(), color.getBlue())
+                        .toDeviceNativeFormat();
+                streamDeck.setButtonImage((byte) index, buttonImage);
+            }
         });
     }
 
     public void colorsWithSingleLineText(StreamDeckDevice streamDeck) {
-        IconPainterFactory iconPainter = findIconPainter(streamDeck);
+        IconPainterFactory iconPainterFactory = findIconPainter(streamDeck);
 
         IntStream.range(0, streamDeck.getStreamDeckInfo().getStreamDeckVariant().getKeyCount()).forEach(index -> {
             Color color = COLORS_FOR_BUTTONS.get(index % COLORS_FOR_BUTTONS.size());
@@ -230,19 +232,20 @@ public class LibMain {
             Arrays.fill(chars, c);
             String buttonText = new String(chars);
 
-            byte[] buttonImage = iconPainter.create(streamDeck)
-                    .fillWholeIcon(color.getRed(), color.getGreen(), color.getBlue())
-                    .setColor(0, 0, 0)
-                    .setFont(null, 16, IconPainter.FontStyle.BOLD_ITALIC)
-                    .writeTextCentered(buttonText)
-                    .toDeviceNativeFormat();
-            streamDeck.setButtonImage((byte) index, buttonImage);
-
+            try (IconPainter iconPainter = iconPainterFactory.create(streamDeck)) {
+                byte[] buttonImage = iconPainter
+                        .fillWholeIcon(color.getRed(), color.getGreen(), color.getBlue())
+                        .setColor(0, 0, 0)
+                        .setFont(null, 16, IconPainter.FontStyle.BOLD_ITALIC)
+                        .writeTextCentered(buttonText)
+                        .toDeviceNativeFormat();
+                streamDeck.setButtonImage((byte) index, buttonImage);
+            }
         });
     }
 
     public void colorsWithMultiLineText(StreamDeckDevice streamDeck) {
-        IconPainterFactory iconPainter = findIconPainter(streamDeck);
+        IconPainterFactory iconPainterFactory = findIconPainter(streamDeck);
 
         IntStream.range(0, streamDeck.getStreamDeckInfo().getStreamDeckVariant().getKeyCount()).forEach(index -> {
             Color color = COLORS_FOR_BUTTONS.get(index % COLORS_FOR_BUTTONS.size());
@@ -257,13 +260,14 @@ public class LibMain {
                             .collect(Collectors.joining()))
                     .collect(Collectors.joining("\n"));
 
-            byte[] buttonImage = iconPainter.create(streamDeck)
-                    .fillWholeIcon(color.getRed(), color.getGreen(), color.getBlue())
-                    .setColor(0, 0, 0)
-                    .writeTextCentered(multilineText)
-                    .toDeviceNativeFormat();
-            streamDeck.setButtonImage((byte) index, buttonImage);
-
+            try (IconPainter iconPainter = iconPainterFactory.create(streamDeck)) {
+                byte[] buttonImage = iconPainter
+                        .fillWholeIcon(color.getRed(), color.getGreen(), color.getBlue())
+                        .setColor(0, 0, 0)
+                        .writeTextCentered(multilineText)
+                        .toDeviceNativeFormat();
+                streamDeck.setButtonImage((byte) index, buttonImage);
+            }
         });
     }
 
@@ -276,19 +280,22 @@ public class LibMain {
 
         IntStream.range(0, streamDeck.getStreamDeckInfo().getStreamDeckVariant().getKeyCount()).forEach(index -> {
             long start = System.nanoTime();
-            byte[] buttonImage = iconPainterFactory.create(streamDeck, bytes).toDeviceNativeFormat();
-            long imageCreationTime = System.nanoTime();
-            streamDeck.setButtonImage((byte)index, buttonImage);
-            long end = System.nanoTime();
+            try (IconPainter iconPainter = iconPainterFactory.create(streamDeck, bytes)) {
+                byte[] buttonImage = iconPainter.toDeviceNativeFormat();
+                long imageCreationTime = System.nanoTime();
+                streamDeck.setButtonImage((byte) index, buttonImage);
+                long end = System.nanoTime();
 
-            long imagePreparationTime = TimeUnit.NANOSECONDS.toMillis(imageCreationTime - start);
-            long settingTime = TimeUnit.NANOSECONDS.toMicros(end - imageCreationTime);
-            log.debug("Total button painting time: {}ms, image={}ms, setting={}us", TimeUnit.NANOSECONDS.toMillis(end-start),
-                    imagePreparationTime,
-                    settingTime);
+                long imagePreparationTime = TimeUnit.NANOSECONDS.toMillis(imageCreationTime - start);
+                long settingTime = TimeUnit.NANOSECONDS.toMicros(end - imageCreationTime);
+                log.debug("Total button painting time: {}ms, image={}ms, setting={}us",
+                        TimeUnit.NANOSECONDS.toMillis(end - start),
+                        imagePreparationTime,
+                        settingTime);
 
-            totalImagePreparationTime.addAndGet(imagePreparationTime);
-            totalSettingTime.addAndGet(settingTime);
+                totalImagePreparationTime.addAndGet(imagePreparationTime);
+                totalSettingTime.addAndGet(settingTime);
+            }
         });
 
         log.info("All buttons painting time: {}ms, image={}ms, setting={}ms", totalImagePreparationTime.get()+totalSettingTime.get()/1000,
@@ -300,7 +307,10 @@ public class LibMain {
     public void someImages2(StreamDeckDevice streamDeck) {
         IconPainterFactory iconPainterFactory = findIconPainter(streamDeck);
         byte[] imageBytes = readPhotoFromFile("/magda.jpg");
-        byte[] bytes = iconPainterFactory.create(streamDeck, imageBytes).toDeviceNativeFormat();
+        byte[] bytes;
+        try (IconPainter iconPainter = iconPainterFactory.create(streamDeck, imageBytes)) {
+            bytes = iconPainter.toDeviceNativeFormat();
+        }
 
         Map<Integer, List<byte[]>> buttonBytesForEachButton =
                 IntStream.range(0, streamDeck.getStreamDeckInfo().getStreamDeckVariant().getKeyCount())
@@ -321,7 +331,10 @@ public class LibMain {
     public void someImages3(StreamDeckDevice streamDeck) {
         IconPainterFactory iconPainterFactory = findIconPainter(streamDeck);
         byte[] imageBytes = readPhotoFromFile("/magda.jpg");
-        byte[] bytes = iconPainterFactory.create(streamDeck, imageBytes).toDeviceNativeFormat();
+        byte[] bytes;
+        try (IconPainter iconPainter = iconPainterFactory.create(streamDeck, imageBytes)) {
+            bytes = iconPainter.toDeviceNativeFormat();
+        }
 
         Map<Integer, List<byte[]>> buttonBytesForEachButton =
                 IntStream.range(0, streamDeck.getStreamDeckInfo().getStreamDeckVariant().getKeyCount())
@@ -340,15 +353,18 @@ public class LibMain {
 
     public void someImagesParallel(StreamDeckDevice streamDeck) {
         IconPainterFactory iconPainterFactory = findIconPainter(streamDeck);
-        byte[] bytes = readPhotoFromFile("/magda.jpg");
+        byte[] imageBytes = readPhotoFromFile("/magda.jpg");
 
         long start = System.nanoTime();
         Flux.range(0, streamDeck.getStreamDeckInfo().getStreamDeckVariant().getKeyCount())
                 .publishOn(Schedulers.newParallel("img", 15, true))
                 .doOnNext(e->log.debug("calculating on thread {}", Thread.currentThread().getName()))
                 .map(index -> {
-                    byte[] bytes1 = iconPainterFactory.create(streamDeck, bytes).toDeviceNativeFormat();
-                    return Tuples.of(index, bytes1);
+                    byte[] bytes;
+                    try (IconPainter iconPainter = iconPainterFactory.create(streamDeck, imageBytes)) {
+                        bytes = iconPainter.toDeviceNativeFormat();
+                    }
+                    return Tuples.of(index, bytes);
                 })
                 .publishOn(Schedulers.single())
                 .doOnNext(e->log.debug("setting on thread {}", Thread.currentThread().getName()))
@@ -377,7 +393,7 @@ public class LibMain {
     }
 
     public void colorsWithSomeGraphics(StreamDeckDevice streamDeck) {
-        IconPainterFactory iconPainter = findIconPainter(streamDeck);
+        IconPainterFactory iconPainterFactory = findIconPainter(streamDeck);
 
         IntStream.range(0, streamDeck.getStreamDeckInfo().getStreamDeckVariant().getKeyCount()).forEach(index -> {
             Color color = COLORS_FOR_BUTTONS.get(index % COLORS_FOR_BUTTONS.size());
@@ -387,11 +403,14 @@ public class LibMain {
             int xy2 = xy1 * 2;
 
 
-            byte[] buttonImage = iconPainter.create(streamDeck)
-                    .fillWholeIcon(color.getRed(), color.getGreen(), color.getBlue())
-                    .setColor(255, 255, 255)
-                    .fillRect(xy1, xy1, xy2, xy2)
-                    .toDeviceNativeFormat();
+            byte[] buttonImage;
+            try (IconPainter iconPainter = iconPainterFactory.create(streamDeck)) {
+                buttonImage = iconPainter
+                        .fillWholeIcon(color.getRed(), color.getGreen(), color.getBlue())
+                        .setColor(255, 255, 255)
+                        .fillRect(xy1, xy1, xy2, xy2)
+                        .toDeviceNativeFormat();
+            }
             streamDeck.setButtonImage((byte) index, buttonImage);
 
         });

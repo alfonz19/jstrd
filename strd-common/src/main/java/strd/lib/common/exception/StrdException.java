@@ -1,6 +1,10 @@
 package strd.lib.common.exception;
 
-public class StrdException extends RuntimeException{
+public class StrdException extends RuntimeException {
+    public StrdException() {
+        super();
+    }
+
     public StrdException(Exception e) {
         super(e);
     }

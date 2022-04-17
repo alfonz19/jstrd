@@ -2,7 +2,7 @@ package strd.lib.iconpainter;
 
 import java.io.InputStream;
 
-public interface IconPainter {
+public interface IconPainter extends AutoCloseable {
     IconPainter drawImage(InputStream inputStream);
 
     IconPainter setColor(int red, int green, int blue);
@@ -61,4 +61,7 @@ public interface IconPainter {
             return awtStyleConstant;
         }
     }
+
+    @Override
+    void close() throws RuntimeException;
 }

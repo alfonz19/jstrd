@@ -30,7 +30,7 @@
   <logger name="HID" level="off"/>
   <logger name="reactor.util.Loggers" level="off"/>
   <logger name="strd.lib.streamdeck.StreamDeckOriginalV2" level="off"/>
-  <logger name="strd.lib.iconpainter.factory.AbstractBufferedImageIconPainterFactory" level="warn"/>
+  <logger name="strd.lib.iconpainter.factory.BufferedImageIconPainterFactory" level="warn"/>
   <logger name="strd.lib.sample.LibMain" level="debug"/>
 
 </configuration>

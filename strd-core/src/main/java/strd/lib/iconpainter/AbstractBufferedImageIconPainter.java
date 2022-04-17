@@ -230,18 +230,16 @@ public abstract class AbstractBufferedImageIconPainter implements IconPainter {
 
     @Override
     public final byte[] toDeviceNativeFormat() {
-        byte[] result = toDeviceNativeFormatTransformation();
-        g2.dispose();
-        return result;
+        return toDeviceNativeFormatTransformation();
     }
 
     protected abstract byte[] toDeviceNativeFormatTransformation();
 
     protected BufferedImage flipHorizontallyAndVertically(BufferedImage image) {
         BufferedImage transformed = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
-        Graphics2D g2 = transformed.createGraphics();
-        g2.drawImage(image, iconSize, iconSize, -1 * iconSize, -1 * iconSize, null);
-        g2.dispose();
+        Graphics2D transformedG2 = transformed.createGraphics();
+        transformedG2.drawImage(image, iconSize, iconSize, -1 * iconSize, -1 * iconSize, null);
+        transformedG2.dispose();
         return transformed;
     }
 
@@ -358,4 +356,8 @@ public abstract class AbstractBufferedImageIconPainter implements IconPainter {
         }
     }
 
+    @Override
+    public void close() {
+        g2.dispose();
+    }
 }
