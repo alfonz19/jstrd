@@ -17,7 +17,7 @@ public class LeafOrNonLeafValidationImpl implements ConstraintValidator<LeafOrNo
             return true;
         }
 
-        int numberOfSetFields = (value.buttons == null ? 0 : 1) + (value.groups == null ? 0 : 1);
+        int numberOfSetFields = (value.buttons == null ? 0 : 1) + (value.containers == null ? 0 : 1);
         return numberOfSetFields == 1;
     }
 }

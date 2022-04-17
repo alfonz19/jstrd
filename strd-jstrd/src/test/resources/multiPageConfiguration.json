@@ -4,43 +4,64 @@
       "serialNumber": "DL49K1A69132",
       "updateInterval": "PT0.01S",
       "layout": {
-        "groups": [
+        "containers": [
           {
-            "name": "page1",
-            "condition": "false",
-            "groups": [
+            "type": "simple",
+            "properties": {
+              "name": "page1",
+              "condition": "false"
+            },
+            "containers": [
               {
-                "name": "page1_part1",
-                "condition": "false",
+                "type": "simple",
+                "properties": {
+                  "name": "page1_part1",
+                  "condition": "false"
+                },
                 "buttons": [
                   {
-                    "index": 0,
-                    "name": "whatever",
-                    "description": "whatever"
+                    "type": "tick",
+                    "properties": {
+                      "index": 0,
+                      "name": "whatever",
+                      "description": "whatever"
+                    }
                   }
                 ]
               },
               {
-                "name": "page1_part2",
-                "condition": "false",
+                "type": "simple",
+                "properties": {
+                  "name": "page1_part2",
+                  "condition": "false"
+                },
                 "buttons": [
                   {
-                    "index": 0,
-                    "name": "whatever",
-                    "description": "whatever"
+                    "type": "clock",
+                    "properties": {
+                      "name": "whatever",
+                      "index": 0,
+                      "description": "whatever"
+                    }
                   }
                 ]
               }
             ]
           },
           {
-            "name": "page2",
-            "condition": "false",
+            "type": "simple",
+            "properties": {
+              "name": "page2",
+              "condition": "false"
+            },
             "buttons": [
               {
-                "index": 0,
-                "name": "whatever",
-                "description": "whatever",
+                "type": "color",
+                "properties": {
+                  "name": "whatever",
+                  "index": 0,
+                  "description": "whatever"
+                },
                 "buttonType": "...",
                 "configuration": {
                   "action": "..."

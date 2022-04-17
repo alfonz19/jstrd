@@ -208,6 +208,7 @@
                   <excludes>
                     <exclude>module-info.class</exclude>
                     <exclude>META-INF/versions/11/module-info.class</exclude>
+                    <exclude>META-INF/versions/9/module-info.class</exclude>
                     <exclude>META-INF/*.SF</exclude>
                     <exclude>META-INF/*.DSA</exclude>
                     <exclude>META-INF/*.RSA</exclude>
@@ -221,6 +222,7 @@
                     <exclude>META-INF/NOTICE.md</exclude>
                     <exclude>META-INF/AL2.0</exclude>
                     <exclude>META-INF/LGPL2.1</exclude>
+                    <exclude>META-INF.versions.9.module-info</exclude>
 
                   </excludes>
                 </filter>

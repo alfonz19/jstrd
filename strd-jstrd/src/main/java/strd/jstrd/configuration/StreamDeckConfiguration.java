@@ -1,6 +1,5 @@
 package strd.jstrd.configuration;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.validation.Valid;
@@ -41,23 +40,25 @@ public class StreamDeckConfiguration {
     @LeafOrNonLeafValidation
     public static class LeafOrNonLeaf {
         @Valid
-        public List<NonLeaf> groups;
+        public List<NonLeaf> containers;
         public List<ButtonConfiguration> buttons;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class NonLeaf extends LeafOrNonLeaf {
-        public String name;
-        public String condition;
+        public String type;
+        public Map<String, Object> properties;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     private static class ButtonConfiguration {
-        public String index;
-        public String name;
-        public String description;
-        public String buttonType;
-        public Map<String, String> configuration;
+        public String type;
+        public Map<String, Object> properties;
+//        public String index;
+//        public String name;
+//        public String description;
+//        public String buttonType;
+//        public Map<String, String> configuration;
     }
 }
 
