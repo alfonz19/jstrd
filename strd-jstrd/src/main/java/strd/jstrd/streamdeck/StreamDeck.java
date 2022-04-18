@@ -81,51 +81,54 @@ public class StreamDeck {
     }
 
     public StreamDeck start() {
-        tickingFluxDisposable = Flux.interval(configuration.getUpdateInterval()).subscribe(e -> {
-                    log.debug("Regular update of stream deck {}",
-                            this.streamDeckDevice.getStreamDeckInfo().getSerialNumberString());
-                    Instant now = Instant.now();
-
-                    log.debug("Calling tick");
-                    rootButtonContainer.tick(now);
-                    log.debug("Calling tick done.");
-
-                    log.debug("Calculating buttons to show");
-                    rootButtonContainer.update(streamDeckButtonSet);
-                    log.debug("Calculating buttons to show [done]");
-
-                    log.debug("updating buttons.");
-                    Flux.range(0, streamDeckButtonSet.getButtonCount())
-                            .publishOn(Schedulers.parallel())
-                            .filter(index -> streamDeckButtonSet.buttonNeedsUpdate(index))
-                            .subscribe(index -> {
-                                log.debug("Have to update button {}", index);
-                                Button button = streamDeckButtonSet.get(index);
-                                if (button == null) {
-                                    log.debug("Replacing null-value button with blank button.");
-                                    button = blankButton;
-                                }
-
-                                streamDeckDevice.setButtonImage(index, button.draw());
-                            }, ex -> {
-                                //this was caused by single buttong update, not whole device; the whole device is below.
-                                //TODO MMUCHA: cli error, unregister device.
-                                log.error("Updating streamdeck thrown exception, halting update process", ex);
-                            }, () -> {
-
-                                //prepare instance for another round.
-                                streamDeckButtonSet.flip();
-                                log.debug("updating buttons [done]");
-                            });
-
-                },
+        updateStreamDeckButtons();
+        tickingFluxDisposable = Flux.interval(configuration.getUpdateInterval())
+                .subscribe(e -> updateStreamDeckButtons(),
                 ex -> {
-//            somehow unregister the device.
+                    //somehow unregister the device.
                     //TODO MMUCHA: can we somehow throw exception?
                     log.error("Updating streamdeck thrown exception, halting update process", ex);
                     CliUtil.printException(ex);
                 });
         return this;
+    }
+
+    private void updateStreamDeckButtons() {
+        log.debug("Regular update of stream deck {}",
+                this.streamDeckDevice.getStreamDeckInfo().getSerialNumberString());
+        Instant now = Instant.now();
+
+        log.debug("Calling tick");
+        rootButtonContainer.tick(now);
+        log.debug("Calling tick done.");
+
+        log.debug("Calculating buttons to show");
+        rootButtonContainer.update(streamDeckButtonSet);
+        log.debug("Calculating buttons to show [done]");
+
+        log.debug("updating buttons.");
+        Flux.range(0, streamDeckButtonSet.getButtonCount())
+                .publishOn(Schedulers.parallel())
+                .filter(index -> streamDeckButtonSet.buttonNeedsUpdate(index))
+                .subscribe(index -> {
+                    log.debug("Have to update button {}", index);
+                    Button button = streamDeckButtonSet.get(index);
+                    if (button == null) {
+                        log.debug("Replacing null-value button with blank button.");
+                        button = blankButton;
+                    }
+
+                    streamDeckDevice.setButtonImage(index, button.draw());
+                }, ex -> {
+                    //this was caused by single buttong update, not whole device; the whole device is below.
+                    //TODO MMUCHA: cli error, unregister device.
+                    log.error("Updating streamdeck thrown exception, halting update process", ex);
+                }, () -> {
+
+                    //prepare instance for another round.
+                    streamDeckButtonSet.flip();
+                    log.debug("updating buttons [done]");
+                });
     }
 
     public StreamDeck stop() {
