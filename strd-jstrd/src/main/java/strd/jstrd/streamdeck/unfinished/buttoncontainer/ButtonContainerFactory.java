@@ -1,4 +1,7 @@
 package strd.jstrd.streamdeck.unfinished.buttoncontainer;
 
-public interface ButtonContainerFactory {
+import strd.jstrd.streamdeck.unfinished.button.ConfigurableFactory;
+
+public interface ButtonContainerFactory extends ConfigurableFactory<ButtonContainer>  {
+
 }

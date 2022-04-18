@@ -3,17 +3,11 @@ package strd.jstrd.streamdeck.unfinished.button;
 import strd.lib.iconpainter.IconPainter;
 
 import java.time.Instant;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-import java.util.Map;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
-import static strd.jstrd.streamdeck.unfinished.button.ButtonFactory.ButtonConfigurationDefinition.ButtonPropertyDataType.COLOR;
 
 public class TickButton implements Button {
 

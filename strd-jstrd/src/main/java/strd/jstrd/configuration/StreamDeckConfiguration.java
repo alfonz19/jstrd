@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.validation.Valid;
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +23,7 @@ public class StreamDeckConfiguration {
     public static class DeviceConfiguration {
         private String serialNumber;
 
-        private Duration updateInterval;
+        private Duration updateInterval = ChronoUnit.FOREVER.getDuration();
 
         @Valid
         public LeafOrNonLeaf layout;

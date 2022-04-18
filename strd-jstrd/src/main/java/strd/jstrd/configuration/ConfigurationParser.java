@@ -62,10 +62,11 @@ public class ConfigurationParser {
 
         if (validationResult.isEmpty()) {
 
-            1. finish containers service loader factories.
-            2. go over referenced buttons and containers, try to instantiate them, converting whole document to transformed tree.
-            3. validate buttons / containers against declared properties. warn about unknown properties.
-            4. make this return ButtonContainer
+
+//            1. finish containers service loader factories.
+//            2. go over referenced buttons and containers, try to instantiate them, converting whole document to transformed tree.
+//            3. validate buttons / containers against declared properties. warn about unknown properties.
+//            4. make this return ButtonContainer
 
 
             return streamDeckConfiguration;

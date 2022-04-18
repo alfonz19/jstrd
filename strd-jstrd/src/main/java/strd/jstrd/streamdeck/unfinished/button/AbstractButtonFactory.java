@@ -1,44 +1,46 @@
 package strd.jstrd.streamdeck.unfinished.button;
 
+import strd.jstrd.streamdeck.unfinished.FactoryPropertiesDefinition;
+
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class AbstractButtonFactory implements ButtonFactory {
 
-    private final String buttonName;
+    private final String objectType;
     private final Function<Map<String, Object>, Button> ctorFunction;
-    private final ButtonConfigurationDefinition configurationDefinition;
+    private final FactoryPropertiesDefinition configurationDefinition;
 
 
 
-    public AbstractButtonFactory(String buttonName,
+    public AbstractButtonFactory(String objectType,
                                  Supplier<Button> ctorFunction,
-                                 ButtonConfigurationDefinition configurationDefinition) {
-        this(buttonName, e -> ctorFunction.get(), configurationDefinition);
+                                 FactoryPropertiesDefinition configurationDefinition) {
+        this(objectType, e -> ctorFunction.get(), configurationDefinition);
     }
 
-    public AbstractButtonFactory(String buttonName,
+    public AbstractButtonFactory(String objectType,
                                  Supplier<Button> ctorFunction) {
-        this(buttonName, e -> ctorFunction.get());
+        this(objectType, e -> ctorFunction.get());
     }
 
-    public AbstractButtonFactory(String buttonName,
+    public AbstractButtonFactory(String objectType,
                                  Function<Map<String, Object>, Button> ctorFunction) {
-        this(buttonName, ctorFunction, ButtonConfigurationDefinition.EMPTY);
+        this(objectType, ctorFunction, FactoryPropertiesDefinition.EMPTY);
     }
 
-    public AbstractButtonFactory(String buttonName,
+    public AbstractButtonFactory(String objectType,
                                  Function<Map<String, Object>, Button> ctorFunction,
-                                 ButtonConfigurationDefinition configurationDefinition) {
-        this.buttonName = buttonName;
+                                 FactoryPropertiesDefinition configurationDefinition) {
+        this.objectType = objectType;
         this.ctorFunction = ctorFunction;
         this.configurationDefinition = configurationDefinition;
     }
 
     @Override
-    public String getButtonName() {
-        return buttonName;
+    public String getObjectType() {
+        return objectType;
     }
 
     @Override
@@ -47,7 +49,7 @@ public class AbstractButtonFactory implements ButtonFactory {
     }
 
     @Override
-    public ButtonConfigurationDefinition getButtonConfigurationDefinition() {
+    public FactoryPropertiesDefinition getConfigurationDefinition() {
         return configurationDefinition;
     }
 }
