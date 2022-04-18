@@ -3,7 +3,6 @@ package strd.jstrd.streamdeck;
 import strd.jstrd.configuration.StreamDeckConfiguration;
 import strd.jstrd.util.CustomCollectors;
 import strd.jstrd.util.JacksonUtil;
-import strd.lib.iconpainter.IconPainter;
 import strd.lib.iconpainter.factory.IconPainterFactory;
 import strd.lib.spi.hid.HidLibrary;
 import strd.lib.streamdeck.StreamDeckDevice;
@@ -65,7 +64,7 @@ public class Daemon {
             StreamDeck streamDeck = registeredDevices.get(deviceConfig.getSerialNumber());
             //and if we have one, update its configuration.
             if (streamDeck != null) {
-                streamDeck.setConfiguration(deviceConfig);
+                streamDeck.stop().setConfiguration(deviceConfig).start();
             }
         });
     }
@@ -83,7 +82,7 @@ public class Daemon {
         getConfigurationForDevice(streamDeckInfo)
                 .ifPresent(configuration -> registeredDevices.put(
                         streamDeckInfo.getSerialNumberString(),
-                        createStreamDeck(streamDeckInfo).setConfiguration(configuration)));
+                        createStreamDeck(streamDeckInfo).setConfiguration(configuration).start()));
     }
 
     private StreamDeck createStreamDeck(HidLibrary.StreamDeckInfo streamDeckInfo) {
@@ -91,9 +90,17 @@ public class Daemon {
         return new StreamDeck(streamDeckDevice, iconPainterFactory);
     }
 
-    private synchronized void unregisterDevice(HidLibrary.StreamDeckInfo streamDeckInfo) {
+    /**
+     *
+     * @param streamDeckInfo
+     * @param makeAttemptToCloseDevice it's possible, that we're notified about device removal and based on that we called
+     *                                 its unregistering. In that case, trying to close the device will yield error,
+     *                                 as the device is gone already.
+     */
+    private synchronized void unregisterDevice(HidLibrary.StreamDeckInfo streamDeckInfo, boolean makeAttemptToCloseDevice) {
         StreamDeck registeredDevice = registeredDevices.remove(streamDeckInfo.getSerialNumberString());
-        if (registeredDevice != null) {
+        registeredDevice.stop();
+        if (registeredDevice != null && makeAttemptToCloseDevice) {
             registeredDevice.closeDevice();
         }
     }
@@ -120,7 +127,7 @@ public class Daemon {
         @Override
         public void deviceRemoved(HidLibrary.StreamDeckInfo streamDeckInfo) {
             log.debug("Unplugged device {}: {}", streamDeckInfo.getSerialNumberString(), streamDeckInfo.getProductString());
-            unregisterDevice(streamDeckInfo);
+            unregisterDevice(streamDeckInfo, false);
         }
     }
 }

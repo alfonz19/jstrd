@@ -109,7 +109,14 @@ public class PureJavaHid implements HidLibrary {
     }
 
     private void detectDeviceAddRemoveAndNotify() {
-        List<HidLibrary.StreamDeckInfo> foundDevices = findStreamDeckDevices();
+        List<StreamDeckInfo> foundDevices;
+        try {
+            foundDevices = findStreamDeckDevices();
+        } catch (Exception e) {
+            log.warn("Failure during detection of devices. It's known to happen if you remove device in wrong time");
+            return;
+        }
+
         foundDevices.stream()
                 .filter(info -> !existingDevices.containsKey(getDeviceNaturalId(info)))
                 .forEach(info -> {
@@ -163,7 +170,12 @@ public class PureJavaHid implements HidLibrary {
             hidDevice.setDeviceRemovalListener(source -> {
                 //regardless if user want's or not, this device was removed, so we call close to have up-to-date info, that
                 //this device is closed.
-                close();
+                try {
+                    close();
+                } catch (Exception e) {
+                    ////TODO MMUCHA: remove?
+                    //swallow. The close() call will most likely fail, but that's ok.
+                }
                 deviceRemovalListener.onDeviceRemoved(streamDeckInfo);
             });
         }

@@ -16,7 +16,6 @@ import strd.lib.iconpainter.IconPainter;
 import strd.lib.iconpainter.factory.IconPainterFactory;
 import strd.lib.streamdeck.StreamDeckDevice;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.function.Supplier;
@@ -40,6 +39,7 @@ public class StreamDeck {
     private StreamDeckButtonSetImpl streamDeckButtonSet;
 
     private final Button blankButton;
+    private ButtonContainer rootButtonContainer;
 
     public StreamDeck(StreamDeckDevice streamDeckDevice, IconPainterFactory iconPainterFactory) {
         this.streamDeckDevice = streamDeckDevice;
@@ -54,16 +54,14 @@ public class StreamDeck {
     //TODO MMUCHA: method start.
     public StreamDeck setConfiguration(StreamDeckConfiguration.DeviceConfiguration configuration) {
         //if this streamdeck had configuration already set, we need to stop it for a while.
-        if (tickingFluxDisposable != null) {
-            resetConfiguration();
-
+        if (isRunning()) {
+            throw new IllegalStateException("Cannot reset configuration, streamdeck currently running");
         }
 
         this.configuration = configuration;
-        Duration updateInterval = configuration.getUpdateInterval();
 
         //TODO MMUCHA: read from configuration!
-        ButtonContainer rootButtonContainer = new SimpleButtonContainer(Arrays.asList(
+        rootButtonContainer = new SimpleButtonContainer(Arrays.asList(
                 new ClockButton(),
                 new TickButton(),
                 new ColorButton(255,0,0),
@@ -73,12 +71,17 @@ public class StreamDeck {
 
         log.debug("Preloading all buttons for configuration");
         rootButtonContainer.preload(iconPainterSupplier);
+
         //preloading blank button.
         blankButton.preload(iconPainterSupplier);
         log.debug("Preloading done");
 
 
-        tickingFluxDisposable = Flux.interval(updateInterval).subscribe(e -> {
+        return this;
+    }
+
+    public StreamDeck start() {
+        tickingFluxDisposable = Flux.interval(configuration.getUpdateInterval()).subscribe(e -> {
                     log.debug("Regular update of stream deck {}",
                             this.streamDeckDevice.getStreamDeckInfo().getSerialNumberString());
                     Instant now = Instant.now();
@@ -122,18 +125,24 @@ public class StreamDeck {
                     log.error("Updating streamdeck thrown exception, halting update process", ex);
                     CliUtil.printException(ex);
                 });
-
         return this;
     }
 
-    private void resetConfiguration() {
-        //TODO MMUCHA: release all buttons!!
-        tickingFluxDisposable.dispose();
-        tickingFluxDisposable = null;
+    public StreamDeck stop() {
+        if (isRunning()) {
+            //TODO MMUCHA: release all buttons!!
+            tickingFluxDisposable.dispose();
+            tickingFluxDisposable = null;
+        }
+        return this;
+    }
+
+    public boolean isRunning() {
+        return tickingFluxDisposable != null;
     }
 
     public void closeDevice() {
-        resetConfiguration();
+        stop();
         streamDeckDevice.close();
     }
 
