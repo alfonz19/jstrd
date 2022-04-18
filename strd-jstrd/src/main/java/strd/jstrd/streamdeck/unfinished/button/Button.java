@@ -38,4 +38,6 @@ public interface Button extends AutoCloseable {
      * released, including potentially created IconPainter, if needed.
      */
     void close();
+
+    void updateButtonState(boolean buttonState);
 }

@@ -14,6 +14,7 @@ import strd.jstrd.streamdeck.unfinished.buttoncontainer.SimpleButtonContainer;
 import strd.jstrd.util.CliUtil;
 import strd.lib.iconpainter.IconPainter;
 import strd.lib.iconpainter.factory.IconPainterFactory;
+import strd.lib.spi.hid.HidLibrary;
 import strd.lib.streamdeck.StreamDeckDevice;
 
 import java.time.Instant;
@@ -29,26 +30,26 @@ public class StreamDeck {
     private static final Logger log = getLogger(StreamDeck.class);
     //TODO MMUCHA: improve, why should we have supplier if we have factory already!
     private final Supplier<IconPainter> iconPainterSupplier;
+    private final ButtonStateUpdaterListener buttonsStateUpdatedListener;
 
     private StreamDeckConfiguration.DeviceConfiguration configuration;
     private final StreamDeckDevice streamDeckDevice;
     private Disposable tickingFluxDisposable;
 
-    private final int keyCount;
-
-    private StreamDeckButtonSetImpl streamDeckButtonSet;
+    private final StreamDeckButtonSetImpl shownButtons;
 
     private final Button blankButton;
     private ButtonContainer rootButtonContainer;
 
     public StreamDeck(StreamDeckDevice streamDeckDevice, IconPainterFactory iconPainterFactory) {
         this.streamDeckDevice = streamDeckDevice;
-        keyCount = streamDeckDevice.getStreamDeckInfo().getStreamDeckVariant().getKeyCount();
-        streamDeckButtonSet = new StreamDeckButtonSetImpl(keyCount);
+        int keyCount = streamDeckDevice.getStreamDeckInfo().getStreamDeckVariant().getKeyCount();
+        shownButtons = new StreamDeckButtonSetImpl(keyCount);
 
         iconPainterSupplier = ()->iconPainterFactory.create(streamDeckDevice);
 
         blankButton = new ColorButton();
+        buttonsStateUpdatedListener = new ButtonStateUpdaterListener();
     }
 
     //TODO MMUCHA: method start.
@@ -82,6 +83,8 @@ public class StreamDeck {
 
     public StreamDeck start() {
         updateStreamDeckButtons();
+        streamDeckDevice.addButtonsStateUpdatedListener(buttonsStateUpdatedListener);
+        
         tickingFluxDisposable = Flux.interval(configuration.getUpdateInterval())
                 .subscribe(e -> updateStreamDeckButtons(),
                 ex -> {
@@ -103,16 +106,16 @@ public class StreamDeck {
         log.debug("Calling tick done.");
 
         log.debug("Calculating buttons to show");
-        rootButtonContainer.update(streamDeckButtonSet);
+        rootButtonContainer.update(shownButtons);
         log.debug("Calculating buttons to show [done]");
 
         log.debug("updating buttons.");
-        Flux.range(0, streamDeckButtonSet.getButtonCount())
+        Flux.range(0, shownButtons.getButtonCount())
                 .publishOn(Schedulers.parallel())
-                .filter(index -> streamDeckButtonSet.buttonNeedsUpdate(index))
+                .filter(shownButtons::buttonNeedsUpdate)
                 .subscribe(index -> {
                     log.debug("Have to update button {}", index);
-                    Button button = streamDeckButtonSet.get(index);
+                    Button button = shownButtons.get(index);
                     if (button == null) {
                         log.debug("Replacing null-value button with blank button.");
                         button = blankButton;
@@ -126,7 +129,7 @@ public class StreamDeck {
                 }, () -> {
 
                     //prepare instance for another round.
-                    streamDeckButtonSet.flip();
+                    shownButtons.flip();
                     log.debug("updating buttons [done]");
                 });
     }
@@ -135,6 +138,7 @@ public class StreamDeck {
         if (isRunning()) {
             //TODO MMUCHA: release all buttons!!
             tickingFluxDisposable.dispose();
+            streamDeckDevice.removeButtonsStateUpdatedListener(buttonsStateUpdatedListener);
             tickingFluxDisposable = null;
         }
         return this;
@@ -212,6 +216,15 @@ public class StreamDeck {
             oldButtons = buttons;
             buttons = tmp;
             Arrays.fill(buttons, null);
+        }
+    }
+
+    private class ButtonStateUpdaterListener extends StreamDeckDevice.ButtonStateListener.Adapter {
+        @Override
+        public void buttonStateUpdated(HidLibrary.StreamDeckInfo streamDeckInfo,
+                                       int buttonIndex,
+                                       boolean buttonState) {
+            shownButtons.get(buttonIndex).updateButtonState(buttonState);
         }
     }
 }
