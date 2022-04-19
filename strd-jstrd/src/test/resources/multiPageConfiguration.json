@@ -57,15 +57,34 @@
             "buttons": [
               {
                 "type": "color",
-                "properties": {
-                  "name": "whatever",
-                  "index": 0,
-                  "description": "whatever"
-                },
-                "buttonType": "...",
-                "configuration": {
-                  "action": "..."
-                }
+                "configuration": [
+                  {
+                    "behavior": ["single", "doubleclick", "hold"],
+                    "buttonType_ignore": "replacedWithBehavior. Or maybe use property: enableDoubleclick / enable hold.",
+                    "el": "true",
+                    "properties": {
+                      "name": "whatever",
+                      "index": 0,
+                      "description": "whatever"
+                    },
+                    "action": [
+                      {
+                        "onClick": {
+                          "action": "setProperty",
+                          "properties": {
+                            "value": "abcdef"
+                          }
+                        },
+                        "onDoubleClick": {
+                          "action": "command",
+                          "properties": {
+                            "value": "/bin/bash -c 'echo -c yeah!'"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
               }
             ]
           }
