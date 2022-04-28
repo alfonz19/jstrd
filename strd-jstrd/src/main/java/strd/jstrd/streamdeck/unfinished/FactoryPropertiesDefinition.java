@@ -1,5 +1,6 @@
 package strd.jstrd.streamdeck.unfinished;
 
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -10,7 +11,7 @@ public class FactoryPropertiesDefinition {
 
     public static final FactoryPropertiesDefinition EMPTY = new FactoryPropertiesDefinition();
 
-    private Set<PropertyDefinition> propertyDefinitions;
+    private final Set<PropertyDefinition> propertyDefinitions = new HashSet<>();
 
     public FactoryPropertiesDefinition addProperty(boolean required,
                                                    String propertyName,

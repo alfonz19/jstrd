@@ -51,6 +51,11 @@ public class TickButton implements Button {
         iconPainter.close();
     }
 
+    @Override
+    public void updateButtonState(boolean buttonState) {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
     public static class Factory extends AbstractButtonFactory {
         public Factory() {
             super("tick", TickButton::new);
