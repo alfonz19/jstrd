@@ -41,12 +41,12 @@ public class StreamDeckConfiguration {
     @LeafOrNonLeafValidation
     public static class LeafOrNonLeaf {
         @Valid
-        public List<NonLeaf> containers;
+        public List<ContainerConfiguration> containers;
         public List<ButtonConfiguration> buttons;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class NonLeaf extends LeafOrNonLeaf {
+    public static class ContainerConfiguration extends LeafOrNonLeaf {
         public String type;
         public Map<String, Object> properties;
     }
