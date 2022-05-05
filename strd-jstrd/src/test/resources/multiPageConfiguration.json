@@ -57,7 +57,7 @@
             "buttons": [
               {
                 "type": "color",
-                "configuration": [
+                "properties": {"layeredConfiguration": [
                   {
                     "behavior": ["single", "doubleclick", "hold"],
                     "buttonType_ignore": "replacedWithBehavior. Or maybe use property: enableDoubleclick / enable hold.",
@@ -84,7 +84,7 @@
                       }
                     ]
                   }
-                ]
+                ]}
               }
             ]
           }
