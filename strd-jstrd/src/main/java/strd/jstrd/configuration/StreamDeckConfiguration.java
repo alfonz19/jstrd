@@ -26,7 +26,7 @@ public class StreamDeckConfiguration {
         private Duration updateInterval = ChronoUnit.FOREVER.getDuration();
 
         @Valid
-        public LeafOrNonLeaf layout;
+        private StreamDeckConfiguration.ContainerConfiguration layout;
 
         public String getSerialNumber() {
             return serialNumber;
@@ -35,31 +35,68 @@ public class StreamDeckConfiguration {
         public Duration getUpdateInterval() {
             return updateInterval;
         }
+
+        public ContainerConfiguration getLayout() {
+            return layout;
+        }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    @LeafOrNonLeafValidation
-    public static class LeafOrNonLeaf {
+    @ContainerValidation
+    public static class ContainerConfiguration extends CommonConfiguration {
         @Valid
         public List<ContainerConfiguration> containers;
         public List<ButtonConfiguration> buttons;
+
+        public List<ContainerConfiguration> getContainers() {
+            return containers;
+        }
+
+        public List<ButtonConfiguration> getButtons() {
+            return buttons;
+        }
+
+        public boolean isLeafContainer() {
+            return getContainers() == null;
+        }
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class ContainerConfiguration extends LeafOrNonLeaf {
-        public String type;
-        public Map<String, Object> properties;
-    }
+//    @JsonIgnoreProperties(ignoreUnknown = true)
+//    public static class ContainerConfiguration extends Container {
+//
+//    }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private static class ButtonConfiguration {
-        public String type;
-        public Map<String, Object> properties;
+    public static class ButtonConfiguration extends CommonConfiguration {
+//        public String type;
+//        public Map<String, Object> properties;
 //        public String index;
 //        public String name;
 //        public String description;
 //        public String buttonType;
 //        public Map<String, String> configuration;
+
+
+//        public String getType() {
+//            return type;
+//        }
+//
+//        public Map<String, Object> getProperties() {
+//            return properties;
+//        }
+    }
+
+    public static class CommonConfiguration {
+        private String type;
+        private Map<String, Object> properties;
+
+        public String getType() {
+            return type;
+        }
+
+        public Map<String, Object> getProperties() {
+            return properties;
+        }
     }
 }
 

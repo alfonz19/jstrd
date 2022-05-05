@@ -4,15 +4,15 @@ import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
 
-public class LeafOrNonLeafValidationImpl implements ConstraintValidator<LeafOrNonLeafValidation, StreamDeckConfiguration.LeafOrNonLeaf> {
+public class ContainerValidationImpl implements ConstraintValidator<ContainerValidation, StreamDeckConfiguration.ContainerConfiguration> {
 
     @Override
-    public void initialize(LeafOrNonLeafValidation constraint) {
+    public void initialize(ContainerValidation constraint) {
         //not needed.
     }
 
     @Override
-    public boolean isValid(StreamDeckConfiguration.LeafOrNonLeaf value, ConstraintValidatorContext context) {
+    public boolean isValid(StreamDeckConfiguration.ContainerConfiguration value, ConstraintValidatorContext context) {
         if (value == null) {
             return true;
         }

@@ -14,9 +14,9 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Target({TYPE})
 @Retention(RUNTIME)
 @Documented
-@Constraint(validatedBy = LeafOrNonLeafValidationImpl.class)
+@Constraint(validatedBy = ContainerValidationImpl.class)
 @SupportedValidationTarget(ValidationTarget.ANNOTATED_ELEMENT)
-public @interface LeafOrNonLeafValidation {
+public @interface ContainerValidation {
 
     String message() default "only either buttons or groups can be specified.";
 

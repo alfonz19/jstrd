@@ -3,6 +3,7 @@ package strd.jstrd.util;
 import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -13,9 +14,15 @@ public class ServiceLoaderUtil {
     private ServiceLoaderUtil() {
     }
 
+    //TODO MMUCHA: rename to getService, all methods here.
     public static <T> Optional<T> getLibrary(Class<T> libraryInterface, String specificClassName) {
+        Predicate<T> specificNameFilter = e -> e.getClass().getName().equals(specificClassName);
+        return getLibrary(libraryInterface, specificNameFilter);
+    }
+
+    public static <T> Optional<T> getLibrary(Class<T> libraryInterface, Predicate<T> predicate) {
         return loadInstances(libraryInterface)
-                .filter(e -> e.getClass().getName().equals(specificClassName))
+                .filter(predicate)
                 .findFirst();
     }
 

@@ -1,13 +1,12 @@
 package strd.jstrd.streamdeck.unfinished.buttoncontainer;
 
-import strd.jstrd.streamdeck.unfinished.button.AbstractButtonFactory;
-import strd.jstrd.streamdeck.unfinished.button.Button;
 import strd.jstrd.streamdeck.unfinished.StreamDeckButtonSet;
-import strd.jstrd.streamdeck.unfinished.button.TickButton;
+import strd.jstrd.streamdeck.unfinished.button.Button;
 import strd.lib.iconpainter.IconPainter;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
@@ -27,6 +26,11 @@ public class SimpleButtonContainer implements ButtonContainer {
         this.buttons = buttons;
     }
 
+    @SuppressWarnings("unused")
+    public SimpleButtonContainer(Map<String, Object> properties, List<Button> buttons) {
+        this(buttons);
+    }
+
     @Override
     public void tick(Instant timestamp) {
         buttons.forEach(button -> button.tick(timestamp));
@@ -44,9 +48,10 @@ public class SimpleButtonContainer implements ButtonContainer {
         buttons.forEach(e->e.preload(iconPainterSupplier));
     }
 
-    public static class Factory extends AbstractButtonFactory {
+    public static class Factory extends AbstractLeafButtonContainerFactory {
+
         public Factory() {
-            super("simple", ()->{throw new UnsupportedOperationException("Not implemented yet");});
+            super("simple", SimpleButtonContainer::new);
         }
     }
 }

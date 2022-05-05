@@ -61,6 +61,12 @@ public class StreamDeck {
 
         this.configuration = configuration;
 
+//        add here constructing objects from configuration!
+
+        rootButtonContainer = new LayoutConfigurationToInstances(configuration).transform();
+
+
+
         //TODO MMUCHA: read from configuration!
         rootButtonContainer = new SimpleButtonContainer(Arrays.asList(
                 new ClockButton(),

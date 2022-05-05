@@ -1,6 +1,4 @@
-package strd.jstrd.streamdeck.unfinished.button;
-
-import strd.jstrd.streamdeck.unfinished.FactoryPropertiesDefinition;
+package strd.jstrd.streamdeck.unfinished;
 
 import java.util.Map;
 import java.util.Optional;
@@ -11,8 +9,6 @@ public interface ConfigurableFactory<CREATES> {
      * @return name of what factory creates.
      */
     String getObjectType();
-
-    CREATES create(Map<String, Object> properties);
 
     FactoryPropertiesDefinition getConfigurationDefinition();
 
