@@ -2,16 +2,16 @@
   "devices": [
     {
       "serialNumber": "DL49K1A69132",
-      "updateInterval": "PT3S",
+      "updateInterval": "PT0.01S",
       "layout": {
+        "type": "simpleButtonContainer",
         "buttons": [
           {
-            "index": 0,
-            "name": "whatever",
-            "description": "whatever",
-            "buttonType": "...",
-            "configuration": {
-              "action": "..."
+            "type": "tick",
+            "properties": {
+              "index": 0,
+              "name": "whatever",
+              "description": "whatever"
             }
           }
         ]

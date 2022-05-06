@@ -1,3 +1,3 @@
-strd.jstrd.streamdeck.unfinished.button.TickButton.Factory
-strd.jstrd.streamdeck.unfinished.button.ColorButton.Factory
-strd.jstrd.streamdeck.unfinished.button.ClockButton.Factory
+strd.jstrd.streamdeck.unfinished.button.TickButtonFactory
+strd.jstrd.streamdeck.unfinished.button.ColorButtonFactory
+strd.jstrd.streamdeck.unfinished.button.ClockButtonFactory

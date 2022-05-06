@@ -2,18 +2,19 @@
   "devices": [
     {
       "serialNumber": "DL49K1A69132",
-      "updateInterval": "PT0.01S",
+      "updateInterval": "PT1S",
       "layout": {
+        "type": "simpleLogicalGroupContainer",
         "containers": [
           {
-            "type": "simple",
+            "type": "simpleLogicalGroupContainer",
             "properties": {
               "name": "page1",
               "condition": "false"
             },
             "containers": [
               {
-                "type": "simple",
+                "type": "simpleButtonContainer",
                 "properties": {
                   "name": "page1_part1",
                   "condition": "false"
@@ -30,7 +31,7 @@
                 ]
               },
               {
-                "type": "simple",
+                "type": "simpleButtonContainer",
                 "properties": {
                   "name": "page1_part2",
                   "condition": "false"
@@ -49,7 +50,7 @@
             ]
           },
           {
-            "type": "simple",
+            "type": "simpleButtonContainer",
             "properties": {
               "name": "page2",
               "condition": "false"

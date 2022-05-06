@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 
-public abstract class AbstractLeafButtonContainerFactory extends AbstractConfigurableFactory<ButtonContainer> implements ButtonContainerFactory {
+public abstract class AbstractLeafButtonContainerFactory extends AbstractConfigurableFactory implements ButtonContainerFactory {
     private final BiFunction<Map<String, Object>, List<Button>, ButtonContainer> ctorFunction;
 
 //    public AbstractButtonContainerFactory(String objectType,

@@ -14,4 +14,12 @@ public final class InvalidSteamDeckConfigurationException extends JstrdException
         this.json = json;
         this.validationResult = validationResult;
     }
+
+    public String getJson() {
+        return json;
+    }
+
+    public Set<ConstraintViolation<StreamDeckConfiguration>> getValidationResult() {
+        return validationResult;
+    }
 }

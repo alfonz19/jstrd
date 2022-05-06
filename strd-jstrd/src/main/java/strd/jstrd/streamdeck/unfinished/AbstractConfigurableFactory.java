@@ -1,6 +1,6 @@
 package strd.jstrd.streamdeck.unfinished;
 
-public abstract class AbstractConfigurableFactory<T> implements ConfigurableFactory<T> {
+public abstract class AbstractConfigurableFactory implements ConfigurableFactory {
 
     private final String objectType;
     private final FactoryPropertiesDefinition configurationDefinition;

@@ -47,11 +47,4 @@ public class SimpleButtonContainer implements ButtonContainer {
     public void preload(Supplier<IconPainter> iconPainterSupplier) {
         buttons.forEach(e->e.preload(iconPainterSupplier));
     }
-
-    public static class Factory extends AbstractLeafButtonContainerFactory {
-
-        public Factory() {
-            super("simple", SimpleButtonContainer::new);
-        }
-    }
 }

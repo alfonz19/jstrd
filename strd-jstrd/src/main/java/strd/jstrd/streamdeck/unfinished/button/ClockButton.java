@@ -66,10 +66,4 @@ public class ClockButton implements Button {
     public void updateButtonState(boolean buttonState) {
         throw new UnsupportedOperationException("Not implemented yet");
     }
-
-    public static class Factory extends AbstractButtonFactory {
-        public Factory() {
-            super("clock", ClockButton::new);
-        }
-    }
 }

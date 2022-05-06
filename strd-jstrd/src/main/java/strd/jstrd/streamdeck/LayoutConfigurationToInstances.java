@@ -3,6 +3,7 @@ package strd.jstrd.streamdeck;
 import strd.jstrd.configuration.StreamDeckConfiguration;
 import strd.jstrd.configuration.StreamDeckConfiguration.ButtonConfiguration;
 import strd.jstrd.configuration.StreamDeckConfiguration.ContainerConfiguration;
+import strd.jstrd.exception.InvalidConfigurationException;
 import strd.jstrd.exception.JstrdException;
 import strd.jstrd.streamdeck.unfinished.button.Button;
 import strd.jstrd.streamdeck.unfinished.button.ButtonFactory;
@@ -25,32 +26,38 @@ public class LayoutConfigurationToInstances {
 
 
     public ButtonContainer transform() {
-        ContainerConfiguration container = layout;
-        if (container.isLeafContainer()) {
-            List<Button> buttonList = container.getButtons()
+        return transform(layout);
+    }
+
+    private ButtonContainer transform(ContainerConfiguration containerConfig) {
+        if (containerConfig.isLeafContainer()) {
+            List<Button> buttonList = containerConfig.getButtons()
                     .stream()
                     .map(this::createButtonFromConfiguration)
                     .collect(Collectors.toList());
 
-            return createContainerFromConfiguration(container, buttonList);
+            return getButtonContainerFactory(containerConfig)
+                    .createLeafContainer(containerConfig.getProperties(), buttonList);
         } else {
-            recursion
-            throw new UnsupportedOperationException("Not implemented yet");
+            List<ButtonContainer> buttonContainerList =
+                    containerConfig.getContainers().stream().map(this::transform).collect(Collectors.toList());
+
+            return getButtonContainerFactory(containerConfig)
+                    .createContainer(containerConfig.getProperties(), buttonContainerList);
+
         }
     }
 
-    private ButtonContainer createContainerFromConfiguration(ContainerConfiguration containerConfig, List<Button> buttonList) {
+    private ButtonContainerFactory getButtonContainerFactory(ContainerConfiguration containerConfig) {
         Predicate<ButtonContainerFactory> containerFilteringPredicate =
                 buttonContainerFactory -> buttonContainerFactory.getObjectType().equals(containerConfig.getType());
 
-        Supplier<JstrdException> throwIfContainerNotFound =
-                () -> new JstrdException("Unable to find button container factory for type: " + containerConfig.getType());
+        Supplier<JstrdException> throwIfContainerNotFound = () -> new InvalidConfigurationException(String.format(
+                "unable to find button container factory for type \"%s\"",
+                containerConfig.getType()));
 
-        ButtonContainerFactory buttonContainerFactory =
-                ServiceLoaderUtil.getLibrary(ButtonContainerFactory.class, containerFilteringPredicate)
-                        .orElseThrow(throwIfContainerNotFound);
-
-        return buttonContainerFactory.createLeafContainer(containerConfig.getProperties(), buttonList);
+        return ServiceLoaderUtil.getLibrary(ButtonContainerFactory.class, containerFilteringPredicate)
+                .orElseThrow(throwIfContainerNotFound);
     }
 
     private Button createButtonFromConfiguration(ButtonConfiguration buttonConfig) {
@@ -58,7 +65,8 @@ public class LayoutConfigurationToInstances {
                 buttonFactory -> buttonFactory.getObjectType().equals(buttonConfig.getType());
 
         Supplier<JstrdException> throwIfButtonNotFound =
-                () -> new JstrdException("Unable to find button factory for type: " + buttonConfig.getType());
+                () -> new InvalidConfigurationException(String.format("unable to find button factory for type: \"%s\"",
+                        buttonConfig.getType()));
 
         ButtonFactory buttonFactory = ServiceLoaderUtil.getLibrary(ButtonFactory.class, buttonFilteringPredicate)
                 .orElseThrow(throwIfButtonNotFound);

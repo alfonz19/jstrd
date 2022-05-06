@@ -3,6 +3,8 @@ package strd.jstrd.configuration;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -21,11 +23,15 @@ public class StreamDeckConfiguration {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class DeviceConfiguration {
+        public static final String LAYOUT_MUST_BE_SPECIFIED = "Layout must be specified";
+
+        @NotEmpty
         private String serialNumber;
 
         private Duration updateInterval = ChronoUnit.FOREVER.getDuration();
 
         @Valid
+        @NotNull(message = LAYOUT_MUST_BE_SPECIFIED)
         private StreamDeckConfiguration.ContainerConfiguration layout;
 
         public String getSerialNumber() {
@@ -46,6 +52,7 @@ public class StreamDeckConfiguration {
     public static class ContainerConfiguration extends CommonConfiguration {
         @Valid
         public List<ContainerConfiguration> containers;
+        @Valid
         public List<ButtonConfiguration> buttons;
 
         public List<ContainerConfiguration> getContainers() {
@@ -87,6 +94,7 @@ public class StreamDeckConfiguration {
     }
 
     public static class CommonConfiguration {
+        @NotEmpty
         private String type;
         private Map<String, Object> properties;
 

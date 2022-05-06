@@ -36,8 +36,9 @@ public class ServiceLoaderUtil {
 
     private static <T> Stream<T> loadInstances(Class<T> libraryInterface) {
         assertInterfaceClass(libraryInterface);
-        ServiceLoader<T> load = ServiceLoader.load(libraryInterface);
-        return StreamSupport.stream(load.spliterator(), false);
+        return ServiceLoader.load(libraryInterface).
+                stream()
+                .map(ServiceLoader.Provider::get);
     }
 
     private static <T> void assertInterfaceClass(Class<T> libraryInterface) {

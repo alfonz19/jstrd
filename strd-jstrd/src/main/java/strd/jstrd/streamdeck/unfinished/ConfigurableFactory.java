@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public interface ConfigurableFactory<CREATES> {
+public interface ConfigurableFactory {
     /**
      * @return name of what factory creates.
      */
