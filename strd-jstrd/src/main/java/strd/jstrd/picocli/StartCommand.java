@@ -67,13 +67,13 @@ public class StartCommand extends GlobalCommandParent implements Runnable {
 
     @Override
     public void run() {
-        Optional<HidLibrary> hidLibrary = ServiceLoaderUtil.getLibrary(HidLibrary.class);
+        Optional<HidLibrary> hidLibrary = ServiceLoaderUtil.getService(HidLibrary.class);
         if (hidLibrary.isEmpty()) {
             CliMessages.printErrorUnableToFindAnyHidLibrary();
             throw new JstrdException("no hid library found");
         }
 
-        Optional<IconPainterFactory> iconPainterFactory = ServiceLoaderUtil.getLibrary(IconPainterFactory.class);
+        Optional<IconPainterFactory> iconPainterFactory = ServiceLoaderUtil.getService(IconPainterFactory.class);
         if (iconPainterFactory.isEmpty()) {
             CliMessages.printErrorUnableToFindAnyIconPainterLibrary();
             throw new JstrdException("no icon painter library found");

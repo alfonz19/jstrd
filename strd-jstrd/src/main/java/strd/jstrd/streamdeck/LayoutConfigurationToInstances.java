@@ -56,7 +56,7 @@ public class LayoutConfigurationToInstances {
                 "unable to find button container factory for type \"%s\"",
                 containerConfig.getType()));
 
-        return ServiceLoaderUtil.getLibrary(ButtonContainerFactory.class, containerFilteringPredicate)
+        return ServiceLoaderUtil.getService(ButtonContainerFactory.class, containerFilteringPredicate)
                 .orElseThrow(throwIfContainerNotFound);
     }
 
@@ -68,7 +68,7 @@ public class LayoutConfigurationToInstances {
                 () -> new InvalidConfigurationException(String.format("unable to find button factory for type: \"%s\"",
                         buttonConfig.getType()));
 
-        ButtonFactory buttonFactory = ServiceLoaderUtil.getLibrary(ButtonFactory.class, buttonFilteringPredicate)
+        ButtonFactory buttonFactory = ServiceLoaderUtil.getService(ButtonFactory.class, buttonFilteringPredicate)
                 .orElseThrow(throwIfButtonNotFound);
 
         return buttonFactory.create(buttonConfig.getProperties());

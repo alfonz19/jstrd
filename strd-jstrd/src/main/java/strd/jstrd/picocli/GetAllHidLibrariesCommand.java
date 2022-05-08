@@ -17,7 +17,7 @@ public class GetAllHidLibrariesCommand extends GlobalCommandParent implements Ca
 
     @Override
     public Integer call() {
-        Set<String> availableLibraries = ServiceLoaderUtil.getAvailableLibraries(HidLibrary.class);
+        Set<String> availableLibraries = ServiceLoaderUtil.getAvailableServices(HidLibrary.class);
         if (availableLibraries.isEmpty()) {
             CliMessages.printErrorUnableToFindAnyHidLibrary();
             return 1;

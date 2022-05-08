@@ -13,36 +13,35 @@ public class ServiceLoaderUtil {
     private ServiceLoaderUtil() {
     }
 
-    //TODO MMUCHA: rename to getService, all methods here.
-    public static <T> Optional<T> getLibrary(Class<T> libraryInterface, String specificClassName) {
+    public static <T> Optional<T> getService(Class<T> serviceInterface, String specificClassName) {
         Predicate<T> specificNameFilter = e -> e.getClass().getName().equals(specificClassName);
-        return getLibrary(libraryInterface, specificNameFilter);
+        return getService(serviceInterface, specificNameFilter);
     }
 
-    public static <T> Optional<T> getLibrary(Class<T> libraryInterface, Predicate<T> predicate) {
-        return loadInstances(libraryInterface)
+    public static <T> Optional<T> getService(Class<T> serviceInterface, Predicate<T> predicate) {
+        return loadInstances(serviceInterface)
                 .filter(predicate)
                 .findFirst();
     }
 
-    public static <T> Optional<T> getLibrary(Class<T> libraryInterface) {
-        return loadInstances(libraryInterface).findFirst();
+    public static <T> Optional<T> getService(Class<T> serviceInterface) {
+        return loadInstances(serviceInterface).findFirst();
     }
 
-    public static <T> Set<String> getAvailableLibraries(Class<T> libraryInterface) {
-        return loadInstances(libraryInterface).map(e -> e.getClass().getName()).collect(Collectors.toSet());
+    public static <T> Set<String> getAvailableServices(Class<T> serviceInterface) {
+        return loadInstances(serviceInterface).map(e -> e.getClass().getName()).collect(Collectors.toSet());
     }
 
-    private static <T> Stream<T> loadInstances(Class<T> libraryInterface) {
-        assertInterfaceClass(libraryInterface);
-        return ServiceLoader.load(libraryInterface).
+    private static <T> Stream<T> loadInstances(Class<T> serviceInterface) {
+        assertInterfaceClass(serviceInterface);
+        return ServiceLoader.load(serviceInterface).
                 stream()
                 .map(ServiceLoader.Provider::get);
     }
 
-    private static <T> void assertInterfaceClass(Class<T> libraryInterface) {
-        if (!libraryInterface.isInterface()) {
-            throw new IllegalArgumentException("Parameter `libraryInterface` should be interface");
+    private static <T> void assertInterfaceClass(Class<T> serviceInterface) {
+        if (!serviceInterface.isInterface()) {
+            throw new IllegalArgumentException("Parameter `serviceInterface` should be interface");
         }
     }
 }
