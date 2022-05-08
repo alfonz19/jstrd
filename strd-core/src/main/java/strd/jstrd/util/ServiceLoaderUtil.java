@@ -32,7 +32,7 @@ public class ServiceLoaderUtil {
         return loadInstances(serviceInterface).map(e -> e.getClass().getName()).collect(Collectors.toSet());
     }
 
-    private static <T> Stream<T> loadInstances(Class<T> serviceInterface) {
+    public static <T> Stream<T> loadInstances(Class<T> serviceInterface) {
         assertInterfaceClass(serviceInterface);
         return ServiceLoader.load(serviceInterface).
                 stream()

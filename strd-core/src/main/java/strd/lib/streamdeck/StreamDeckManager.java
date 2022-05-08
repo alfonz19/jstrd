@@ -1,5 +1,6 @@
 package strd.lib.streamdeck;
 
+import strd.jstrd.util.ServiceLoaderUtil;
 import strd.lib.common.exception.CannotHappenException;
 import strd.lib.spi.hid.HidLibrary;
 import strd.lib.spi.hid.StreamDeckHandle;
@@ -8,7 +9,6 @@ import strd.lib.spi.hid.StreamDeckVariant;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.ServiceLoader;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -20,9 +20,7 @@ public class StreamDeckManager {
     private static final Logger log = getLogger(StreamDeckManager.class);
 
     private static final Map<StreamDeckVariant, StreamDeckFactory> STREAM_DECK_FACTORIES =
-            ServiceLoader.load(StreamDeckFactory.class)
-                    .stream()
-                    .map(ServiceLoader.Provider::get)
+            ServiceLoaderUtil.loadInstances(StreamDeckFactory.class)
                     .collect(Collectors.toMap(StreamDeckFactory::creates, Function.identity()));
 
     private final HidLibrary hidLibrary;
