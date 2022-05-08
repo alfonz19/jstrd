@@ -24,8 +24,9 @@ public class StreamDeckConfiguration {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class DeviceConfiguration {
         public static final String LAYOUT_MUST_BE_SPECIFIED = "Layout must be specified";
+        public static final String SERIAL_VERSION_MUST_BE_SET = "serial version must be set";
 
-        @NotEmpty
+        @NotEmpty(message = SERIAL_VERSION_MUST_BE_SET)
         private String serialNumber;
 
         private Duration updateInterval = ChronoUnit.FOREVER.getDuration();

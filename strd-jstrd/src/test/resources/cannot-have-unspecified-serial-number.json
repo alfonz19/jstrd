@@ -3,7 +3,7 @@
     {
       "updateInterval": "PT0.01S",
       "layout": {
-        "containers": [],
+        "type": "something",
         "buttons": []
       }
     }
