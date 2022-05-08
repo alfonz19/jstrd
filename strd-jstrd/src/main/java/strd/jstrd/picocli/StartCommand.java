@@ -3,10 +3,10 @@ package strd.jstrd.picocli;
 import picocli.CommandLine;
 import strd.jstrd.CliMessages;
 import strd.jstrd.Constants;
-import strd.jstrd.streamdeck.Daemon;
 import strd.jstrd.configuration.ConfigurationParser;
 import strd.jstrd.configuration.StreamDeckConfiguration;
 import strd.jstrd.exception.JstrdException;
+import strd.jstrd.streamdeck.Daemon;
 import strd.jstrd.util.CliUtil;
 import strd.jstrd.util.ServiceLoaderUtil;
 import strd.jstrd.util.singleinstance.JUniqueSingleInstance;
@@ -69,13 +69,13 @@ public class StartCommand extends GlobalCommandParent implements Runnable {
     public void run() {
         Optional<HidLibrary> hidLibrary = ServiceLoaderUtil.getLibrary(HidLibrary.class);
         if (hidLibrary.isEmpty()) {
-            CliMessages.error_unableToFindAnyHidLibrary();
+            CliMessages.printErrorUnableToFindAnyHidLibrary();
             throw new JstrdException("no hid library found");
         }
 
         Optional<IconPainterFactory> iconPainterFactory = ServiceLoaderUtil.getLibrary(IconPainterFactory.class);
         if (iconPainterFactory.isEmpty()) {
-            CliMessages.error_unableToFindAnyIconPainterLibrary();
+            CliMessages.printErrorUnableToFindAnyIconPainterLibrary();
             throw new JstrdException("no icon painter library found");
         }
 

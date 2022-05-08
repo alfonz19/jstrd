@@ -20,7 +20,6 @@ public class JUniqueSingleInstance implements SingleInstance {
         this.lockId = lockId;
     }
 
-
     @Override
     public CommandReply runCommandOnAlreadyRunningInstance(Command command) {
         try {

@@ -10,6 +10,9 @@ import java.io.Serializable;
 import java.util.Base64;
 
 public class SerializableUtil {
+    //hide me!
+    private SerializableUtil() {}
+
     public static String serializableToBase64(Serializable serializable) {
         try {
             ByteArrayOutputStream bo = new ByteArrayOutputStream();

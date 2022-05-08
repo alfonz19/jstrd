@@ -17,6 +17,10 @@ import java.time.format.DateTimeFormatter;
 public class JacksonUtil {
     public static final ObjectMapper OBJECT_MAPPER = createObjectMapper();
 
+    //hide me!
+    private JacksonUtil() {
+    }
+
     private static ObjectMapper createObjectMapper() {
         ObjectMapper result = new ObjectMapper();
         result.registerModule(new JavaTimeModule().addSerializer(OffsetDateTime.class, new JsonSerializer<>() {

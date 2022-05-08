@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+//TODO MMUCHA: synchronize access to this class.
 public class Daemon {
     private static final Logger log = getLogger(Daemon.class);
 
@@ -41,7 +42,7 @@ public class Daemon {
     public void start() {
         DaemonDeviceListener listener = new DaemonDeviceListener();
 
-        //will handle only new devices;
+        //will handle only new devices
         streamDeckManager.addListener(listener);
         //register already plugged in devices.
         streamDeckManager.findStreamDeckDevices().forEach(listener::deviceAdded);
@@ -78,11 +79,11 @@ public class Daemon {
                 .collect(CustomCollectors.atMostOneRecordCollector());
     }
 
-    private synchronized void registerDevice(HidLibrary.StreamDeckInfo streamDeckInfo) {
+    public synchronized void registerDevice(HidLibrary.StreamDeckInfo streamDeckInfo) {
         getConfigurationForDevice(streamDeckInfo)
-                .ifPresent(configuration -> registeredDevices.put(
+                .ifPresent(deviceConfiguration -> registeredDevices.put(
                         streamDeckInfo.getSerialNumberString(),
-                        createStreamDeck(streamDeckInfo).setConfiguration(configuration).start()));
+                        createStreamDeck(streamDeckInfo).setConfiguration(deviceConfiguration).start()));
     }
 
     private StreamDeck createStreamDeck(HidLibrary.StreamDeckInfo streamDeckInfo) {
@@ -92,24 +93,20 @@ public class Daemon {
 
     /**
      *
-     * @param streamDeckInfo
+     * @param streamDeckInfo details about streamdeck
      * @param makeAttemptToCloseDevice it's possible, that we're notified about device removal and based on that we called
      *                                 its unregistering. In that case, trying to close the device will yield error,
      *                                 as the device is gone already.
      */
-    private synchronized void unregisterDevice(HidLibrary.StreamDeckInfo streamDeckInfo, boolean makeAttemptToCloseDevice) {
+    public synchronized void unregisterDevice(HidLibrary.StreamDeckInfo streamDeckInfo, boolean makeAttemptToCloseDevice) {
         StreamDeck registeredDevice = registeredDevices.remove(streamDeckInfo.getSerialNumberString());
-        registeredDevice.stop();
-        if (registeredDevice != null && makeAttemptToCloseDevice) {
-            registeredDevice.closeDevice();
+        if (registeredDevice != null) {
+            registeredDevice.stop();
+            if (makeAttemptToCloseDevice) {
+                registeredDevice.closeDevice();
+            }
         }
     }
-
-//    //TODO MMUCHA: synchronize access to this class.
-//    private void unregisterAllDevices() {
-//        registeredDevices.values().forEach(StreamDeckSomething::closeDevice);
-//        registeredDevices.clear();
-//    }
 
     public StreamDeckConfiguration getConfiguration() {
         return configuration;

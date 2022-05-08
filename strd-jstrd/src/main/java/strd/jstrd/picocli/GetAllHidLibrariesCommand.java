@@ -9,10 +9,6 @@ import strd.lib.spi.hid.HidLibrary;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import org.slf4j.Logger;
-
-import static org.slf4j.LoggerFactory.getLogger;
-
 @CommandLine.Command(description = "Prints all available HID libraries",
         usageHelpWidth = 120,
         name = "get-all-hid-libraries",
@@ -23,7 +19,7 @@ public class GetAllHidLibrariesCommand extends GlobalCommandParent implements Ca
     public Integer call() {
         Set<String> availableLibraries = ServiceLoaderUtil.getAvailableLibraries(HidLibrary.class);
         if (availableLibraries.isEmpty()) {
-            CliMessages.error_unableToFindAnyHidLibrary();
+            CliMessages.printErrorUnableToFindAnyHidLibrary();
             return 1;
         } else {
             CliUtil.printList("All available HID libraries", availableLibraries);

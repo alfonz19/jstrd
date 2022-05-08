@@ -8,11 +8,8 @@ import strd.lib.spi.hid.StreamDeckVariant;
 import strd.lib.streamdeck.StreamDeckDevice;
 
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class BufferedImageIconPainterFactory implements IconPainterFactory {
 

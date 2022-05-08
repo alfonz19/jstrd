@@ -12,7 +12,7 @@ import java.util.function.IntUnaryOperator;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-@SuppressWarnings("squid:S1452")  //usage of ? in generics is normal.
+@SuppressWarnings({"squid:S1452", "unused"})  //usage of ? in generics is normal.
 public class CustomCollectors {
 
     private CustomCollectors() {

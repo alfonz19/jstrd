@@ -2,12 +2,9 @@ package strd.jstrd.configuration;
 
 import strd.jstrd.exception.InvalidSteamDeckConfigurationException;
 
-import javax.validation.ConstraintViolation;
 import java.io.InputStream;
 
-import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -15,26 +12,26 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
-public class ConfigurationParserTest {
+class ConfigurationParserTest {
 
     private final ConfigurationParser underTest = new ConfigurationParser();
 
     @Test
-    public void testValidConfigurationHavingSinglePage() {
+    void testValidConfigurationHavingSinglePage() {
         InputStream is = StreamDeckConfiguration.class.getResourceAsStream("/singlePageConfiguration.json");
         StreamDeckConfiguration configuration = underTest.parse(is);
         assertThat(configuration, Matchers.notNullValue());
     }
 
     @Test
-    public void testValidConfigurationHavingMultiplePages() {
+    void testValidConfigurationHavingMultiplePages() {
         InputStream is = StreamDeckConfiguration.class.getResourceAsStream("/multiPageConfiguration.json");
         StreamDeckConfiguration configuration = underTest.parse(is);
         assertThat(configuration, Matchers.notNullValue());
     }
 
     @Test
-    public void testIncorrectSpecificationButtonsAndContaihersAtTheSameTime() {
+    void testIncorrectSpecificationButtonsAndContaihersAtTheSameTime() {
         assertThrows(InvalidSteamDeckConfigurationException.class, ()-> {
             InputStream is = StreamDeckConfiguration.class.getResourceAsStream(
                     "/cannot-specify-both-buttons-and-containers.json");
@@ -43,7 +40,7 @@ public class ConfigurationParserTest {
     }
 
     @Test
-    public void testCannotHaveUnspecifiedLayout() {
+    void testCannotHaveUnspecifiedLayout() {
         InvalidSteamDeckConfigurationException thrown = assertThrows(InvalidSteamDeckConfigurationException.class,
                 () -> {
                     InputStream is = StreamDeckConfiguration.class.getResourceAsStream(
@@ -56,7 +53,7 @@ public class ConfigurationParserTest {
                 is(StreamDeckConfiguration.DeviceConfiguration.LAYOUT_MUST_BE_SPECIFIED));
     }
     @Test
-    public void testCannotHaveUnspecifiedSerialNumber() {
+    void testCannotHaveUnspecifiedSerialNumber() {
         InvalidSteamDeckConfigurationException thrown = assertThrows(InvalidSteamDeckConfigurationException.class,
                 () -> {
                     InputStream is = StreamDeckConfiguration.class.getResourceAsStream(

@@ -14,7 +14,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * helper class for printing to terminal
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "squid:S106"})
 public class CliUtil {
 
     private static final Logger log = getLogger(CliUtil.class);

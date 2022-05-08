@@ -36,8 +36,6 @@ public class PureJavaHid implements HidLibrary {
                 .map(info -> {
                     short vendorId = info.getVendorId();
                     short productId = info.getProductId();
-                    String productString = info.getProductString();
-                    String serialNumberString = info.getSerialNumberString();
                     return StreamDeckVariant.valueOf(vendorId, productId)
                             .map(streamDeckVariant -> new StreamDeckInfoImpl(streamDeckVariant, info));
                 })

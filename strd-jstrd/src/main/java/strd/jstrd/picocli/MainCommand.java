@@ -1,7 +1,6 @@
 package strd.jstrd.picocli;
 
 import picocli.CommandLine;
-import strd.jstrd.util.CliUtil;
 
 @CommandLine.Command(description = "Java implementation of StreamDeck daemon/managing app.",
         name = "JStreamDeck",

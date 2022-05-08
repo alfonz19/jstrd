@@ -9,8 +9,6 @@ import java.util.logging.Logger;
 
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
 public class Main {
 
     public static void main(String[] args) {

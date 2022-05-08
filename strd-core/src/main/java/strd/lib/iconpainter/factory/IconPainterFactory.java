@@ -1,7 +1,7 @@
 package strd.lib.iconpainter.factory;
 
-import strd.lib.spi.hid.StreamDeckVariant;
 import strd.lib.iconpainter.IconPainter;
+import strd.lib.spi.hid.StreamDeckVariant;
 import strd.lib.streamdeck.StreamDeckDevice;
 
 import java.io.InputStream;
