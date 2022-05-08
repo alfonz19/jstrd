@@ -11,7 +11,9 @@ import strd.jstrd.streamdeck.unfinished.buttoncontainer.ButtonContainer;
 import strd.jstrd.streamdeck.unfinished.buttoncontainer.ButtonContainerFactory;
 import strd.jstrd.util.ServiceLoaderUtil;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -31,7 +33,7 @@ public class LayoutConfigurationToInstances {
 
     private ButtonContainer transform(ContainerConfiguration containerConfig) {
         if (containerConfig.isLeafContainer()) {
-            List<Button> buttonList = containerConfig.getButtons()
+            List<Button> buttonList = Optional.ofNullable(containerConfig.getButtons()).orElse(Collections.emptyList())
                     .stream()
                     .map(this::createButtonFromConfiguration)
                     .collect(Collectors.toList());
