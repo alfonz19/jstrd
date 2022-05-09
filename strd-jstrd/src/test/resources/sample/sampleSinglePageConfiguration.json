@@ -1,0 +1,37 @@
+{
+  "devices": [
+    {
+      "serialNumber": "DL49K1A69132",
+      "updateInterval": "PT1S",
+      "layout": {
+        "type": "simpleButtonContainer",
+        "buttons": [
+          {
+            "type": "clock"
+          },
+          {
+            "type": "tick"
+          },
+          {
+            "type": "color",
+            "properties": {
+              "color": "#ff0000"
+            }
+          },
+          {
+            "type": "color",
+            "properties": {
+              "color": "#00ff00"
+            }
+          },
+          {
+            "type": "color",
+            "properties": {
+              "color": "#0000ff"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

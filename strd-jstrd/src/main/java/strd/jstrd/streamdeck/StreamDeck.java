@@ -61,20 +61,7 @@ public class StreamDeck {
 
         this.configuration = configuration;
 
-//        add here constructing objects from configuration!
-
         rootButtonContainer = new LayoutConfigurationToInstances(configuration).transform();
-
-
-
-        //TODO MMUCHA: read from configuration!
-        rootButtonContainer = new SimpleButtonContainer(Arrays.asList(
-                new ClockButton(),
-                new TickButton(),
-                new ColorButton(255,0,0),
-                new ColorButton(0, 255,0),
-                new ColorButton(0, 0, 255)
-        ));
 
         log.debug("Preloading all buttons for configuration");
         rootButtonContainer.preload(iconPainterSupplier);

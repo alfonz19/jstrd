@@ -5,13 +5,13 @@ import strd.jstrd.exception.InvalidSteamDeckConfigurationException;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
@@ -21,18 +21,20 @@ class ConfigurationParserTest {
     private final ConfigurationParser underTest = new ConfigurationParser();
 
     @Test
-    void testValidConfigurationHavingSinglePage() {
-        InputStream is = StreamDeckConfiguration.class.getResourceAsStream("/singlePageConfiguration.json");
+    void testSampleSinglePageConfiguration() {
+        InputStream is = StreamDeckConfiguration.class.getResourceAsStream("/sample/sampleSinglePageConfiguration.json");
         StreamDeckConfiguration configuration = underTest.parse(is);
-        assertThat(configuration, Matchers.notNullValue());
+        assertThat(configuration, notNullValue());
     }
 
     @Test
-    void testValidConfigurationHavingMultiplePages() {
-        InputStream is = StreamDeckConfiguration.class.getResourceAsStream("/multiPageConfiguration.json");
+    void testSampleMultiPageConfiguration() {
+        InputStream is = StreamDeckConfiguration.class.getResourceAsStream("/sample/multiPageConfiguration.json");
         StreamDeckConfiguration configuration = underTest.parse(is);
-        assertThat(configuration, Matchers.notNullValue());
+        assertThat(configuration, notNullValue());
     }
+
+    //------------------------------------------------------------------------------------------------------------------
 
     @Test
     void testIncorrectSpecificationButtonsAndContaihersAtTheSameTime() throws IOException {
@@ -66,6 +68,5 @@ class ConfigurationParserTest {
             assertThat(thrown.getValidationResult().iterator().next().getMessage(),
                     is(StreamDeckConfiguration.DeviceConfiguration.SERIAL_VERSION_MUST_BE_SET));
         }
-
     }
 }
