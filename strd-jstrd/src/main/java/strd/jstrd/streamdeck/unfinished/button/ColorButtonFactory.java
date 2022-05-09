@@ -30,6 +30,10 @@ public class ColorButtonFactory implements ButtonFactory {
     private ColorButton getColorProperty(Object colorValue) {
         String colorString = getColorString(colorValue);
 
+        if (colorString == null) {
+            throw createInvalidConfigurationException("null");
+        }
+
         Matcher matcher = Pattern.compile("#([a-fA-F0-9]{6})").matcher(colorString);
         if (!matcher.matches()) {
             throw createInvalidConfigurationException(colorString);
