@@ -1,5 +1,6 @@
 package strd.jstrd.streamdeck.unfinished.button;
 
+import strd.jstrd.configuration.StreamDeckConfiguration.ButtonConfiguration;
 import strd.jstrd.exception.JstrdException;
 import strd.jstrd.streamdeck.unfinished.FactoryPropertiesDefinition;
 
@@ -23,8 +24,9 @@ public class ColorButtonFactory implements ButtonFactory {
     }
 
     @Override
-    public Button create(Map<String, Object> properties) {
-        return getColorProperty(properties.get(COLOR_PROPERTY_NAME));
+    public Button create(ButtonConfiguration buttonConfiguration) {
+        Map<String, Object> props = buttonConfiguration.findFirstValidConditionalButtonConfigurationProperties();
+        return getColorProperty(props.get(COLOR_PROPERTY_NAME));
     }
 
     private ColorButton getColorProperty(Object colorValue) {

@@ -1,14 +1,14 @@
 package strd.jstrd.streamdeck.unfinished.button;
 
+import strd.jstrd.configuration.StreamDeckConfiguration.ButtonConfiguration;
 import strd.jstrd.streamdeck.unfinished.AbstractConfigurableFactory;
 import strd.jstrd.streamdeck.unfinished.FactoryPropertiesDefinition;
 
-import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class SimpleButtonFactory extends AbstractConfigurableFactory implements ButtonFactory {
-    private final Function<Map<String, Object>, Button> ctorFunction;
+    private final Function<ButtonConfiguration, Button> ctorFunction;
 
     public SimpleButtonFactory(String objectType,
                                Supplier<Button> ctorFunction,
@@ -20,19 +20,19 @@ public class SimpleButtonFactory extends AbstractConfigurableFactory implements 
         this(objectType, e -> ctorFunction.get());
     }
 
-    public SimpleButtonFactory(String objectType, Function<Map<String, Object>, Button> ctorFunction) {
+    public SimpleButtonFactory(String objectType, Function<ButtonConfiguration, Button> ctorFunction) {
         this(objectType, ctorFunction, FactoryPropertiesDefinition.EMPTY);
     }
 
     public SimpleButtonFactory(String objectType,
-                               Function<Map<String, Object>, Button> ctorFunction,
+                               Function<ButtonConfiguration, Button> ctorFunction,
                                FactoryPropertiesDefinition configurationDefinition) {
         super(objectType, configurationDefinition);
         this.ctorFunction = ctorFunction;
     }
 
     @Override
-    public Button create(Map<String, Object> properties) {
-        return ctorFunction.apply(properties);
+    public Button create(ButtonConfiguration buttonConfiguration) {
+        return ctorFunction.apply(buttonConfiguration);
     }
 }

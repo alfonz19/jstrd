@@ -17,6 +17,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class LayoutConfigurationToInstances {
 
@@ -73,6 +74,19 @@ public class LayoutConfigurationToInstances {
         ButtonFactory buttonFactory = ServiceLoaderUtil.getService(ButtonFactory.class, buttonFilteringPredicate)
                 .orElseThrow(throwIfButtonNotFound);
 
-        return buttonFactory.create(buttonConfig.getProperties());
+        //TODO MMUCHA: describe failures better, provide what fails and where(path to failure).
+        //validate every configuration provided in button config.
+        List<String> validationIssues =
+                Stream.concat(buttonConfig.getConditionalConfigurations()
+                                .stream()
+                                .map(StreamDeckConfiguration.ConditionalButtonConfiguration::getProperties),
+                        Stream.of(buttonConfig.getProperties()))
+                .flatMap(e -> buttonFactory.validateProperties(e).stream())
+                .collect(Collectors.toList());
+
+        if (!validationIssues.isEmpty()) {
+            throw new InvalidConfigurationException("Following issues were found: " + validationIssues);
+        }
+        return buttonFactory.create(buttonConfig);
     }
 }

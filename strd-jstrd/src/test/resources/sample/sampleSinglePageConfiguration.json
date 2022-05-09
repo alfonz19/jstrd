@@ -7,13 +7,16 @@
         "type": "simpleButtonContainer",
         "buttons": [
           {
-            "type": "clock"
+            "type": "clock",
+            "description": "clock showing button"
           },
           {
-            "type": "tick"
+            "type": "tick",
+            "description": "tick showing button"
           },
           {
             "type": "color",
+            "description": "simple color button",
             "properties": {
               "color": "#ff0000"
             }

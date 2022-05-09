@@ -11,11 +11,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+@SuppressWarnings("unused")
 public class StreamDeckConfiguration {
 
     @Valid
-    private List<DeviceConfiguration> devices = new ArrayList<>();
+    private final List<DeviceConfiguration> devices = new ArrayList<>();
 
     public List<DeviceConfiguration> getDevices() {
         return devices;
@@ -46,6 +46,21 @@ public class StreamDeckConfiguration {
         public ContainerConfiguration getLayout() {
             return layout;
         }
+
+        public DeviceConfiguration setSerialNumber(String serialNumber) {
+            this.serialNumber = serialNumber;
+            return this;
+        }
+
+        public DeviceConfiguration setUpdateInterval(Duration updateInterval) {
+            this.updateInterval = updateInterval;
+            return this;
+        }
+
+        public DeviceConfiguration setLayout(ContainerConfiguration layout) {
+            this.layout = layout;
+            return this;
+        }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -55,56 +70,129 @@ public class StreamDeckConfiguration {
         public List<ContainerConfiguration> containers;
         @Valid
         public List<ButtonConfiguration> buttons;
+        private Map<String, Object> properties;
+
+        public boolean isLeafContainer() {
+            return getContainers() == null;
+        }
 
         public List<ContainerConfiguration> getContainers() {
             return containers;
+        }
+
+        public ContainerConfiguration setContainers(List<ContainerConfiguration> containers) {
+            this.containers = containers;
+            return this;
         }
 
         public List<ButtonConfiguration> getButtons() {
             return buttons;
         }
 
-        public boolean isLeafContainer() {
-            return getContainers() == null;
+        public ContainerConfiguration setButtons(List<ButtonConfiguration> buttons) {
+            this.buttons = buttons;
+            return this;
+        }
+
+        public Map<String, Object> getProperties() {
+            return properties;
+        }
+
+        public ContainerConfiguration setProperties(Map<String, Object> properties) {
+            this.properties = properties;
+            return this;
         }
     }
 
-//    @JsonIgnoreProperties(ignoreUnknown = true)
-//    public static class ContainerConfiguration extends Container {
-//
-//    }
-
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ButtonConfiguration extends CommonConfiguration {
-//        public String type;
-//        public Map<String, Object> properties;
+
+        private final List<ConditionalButtonConfiguration> conditionalConfigurations = new ArrayList<>();
+
+        public Map<String, Object> properties;
+
+        public Map<String, Object> findFirstValidConditionalButtonConfigurationProperties() {
+            return conditionalConfigurations.stream()
+                    .filter(e->/*evaluateEl()*/true)    //TODO MMUCHA: implement!
+                    .map(ConditionalButtonConfiguration::getProperties)
+                    .findFirst()
+                    .orElse(properties);
+        }
+
+        public List<ConditionalButtonConfiguration> getConditionalConfigurations() {
+            return conditionalConfigurations;
+        }
+
+        public Map<String, Object> getProperties() {
+            return properties;
+        }
+
+        public ButtonConfiguration setProperties(Map<String, Object> properties) {
+            this.properties = properties;
+            return this;
+        }
+
 //        public String index;
-//        public String name;
-//        public String description;
 //        public String buttonType;
 //        public Map<String, String> configuration;
+    }
 
+    public static class ConditionalButtonConfiguration {
+        private String el;
+        private Map<String, Object> properties;
 
-//        public String getType() {
-//            return type;
-//        }
-//
-//        public Map<String, Object> getProperties() {
-//            return properties;
-//        }
+        public String getEl() {
+            return el;
+        }
+
+        public ConditionalButtonConfiguration setEl(String el) {
+            this.el = el;
+            return this;
+        }
+
+        public Map<String, Object> getProperties() {
+            return properties;
+        }
+
+        public ConditionalButtonConfiguration setProperties(Map<String, Object> properties) {
+            this.properties = properties;
+            return this;
+        }
     }
 
     public static class CommonConfiguration {
         @NotEmpty
         private String type;
-        private Map<String, Object> properties;
+
+        private String name;
+
+        private String description;
 
         public String getType() {
             return type;
         }
 
-        public Map<String, Object> getProperties() {
-            return properties;
+        public CommonConfiguration setType(String type) {
+            this.type = type;
+            return this;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public CommonConfiguration setName(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public CommonConfiguration setDescription(String description) {
+            this.description = description;
+            return this;
         }
     }
 }

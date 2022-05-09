@@ -69,4 +69,6 @@ class ConfigurationParserTest {
                     is(StreamDeckConfiguration.DeviceConfiguration.SERIAL_VERSION_MUST_BE_SET));
         }
     }
+
+
 }

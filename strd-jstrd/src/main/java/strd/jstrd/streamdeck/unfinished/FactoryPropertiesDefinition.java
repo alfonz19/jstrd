@@ -83,7 +83,7 @@ public class FactoryPropertiesDefinition {
          */
         public Optional<String> validateValue(Object value) {
             if (value == null && required) {
-                return Optional.of(String.format("Missing required property %s", propertyName));
+                return Optional.of(String.format("Missing required property \"%s\"", propertyName));
             }
 
             return customValidation.apply(this, value);
