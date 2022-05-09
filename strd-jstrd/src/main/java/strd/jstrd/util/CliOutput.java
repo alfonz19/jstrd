@@ -11,6 +11,5 @@ interface CliOutput {
 
     void printList(String title, Collection<String> items);
 
-    //TODO MMUCHA: support for whole stack.
     void printException(Throwable ex);
 }

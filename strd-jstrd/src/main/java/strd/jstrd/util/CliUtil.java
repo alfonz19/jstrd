@@ -1,7 +1,11 @@
 package strd.jstrd.util;
 
+import picocli.CommandLine;
 import strd.lib.util.ShutdownHooks;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -23,6 +27,8 @@ public class CliUtil {
     private static final CliOutput plainTextCliOutput = new PlainTextCliOutput();
     private static CliOutput cliOutput = plainTextCliOutput;
 
+    private static boolean verbose = false;
+
 
 
     //hide me!
@@ -38,6 +44,10 @@ public class CliUtil {
         } else {
             cliOutput = plainTextCliOutput;
         }
+    }
+
+    public static synchronized void setVerbose(boolean verbose) {
+        CliUtil.verbose = verbose;
     }
 
     public static void printError(String message) {
@@ -60,15 +70,10 @@ public class CliUtil {
         cliOutput.printException(ex);
     }
 
-    private static class PlainTextCliOutput implements CliOutput {
+    private static class PlainTextCliOutput extends AbstractCliOutput implements CliOutput {
         @Override
         public void printError(String message) {
             System.err.println("[ERROR] "+message);
-        }
-
-        @Override
-        public void printException(Throwable ex) {
-            printError("Application failed with exception. ExceptionMessage: "+ex.getMessage());
         }
 
         @Override
@@ -89,7 +94,7 @@ public class CliUtil {
             System.out.println(text);
         }
     }
-    private static class JansiCliOutput implements CliOutput {
+    private static class JansiCliOutput extends AbstractCliOutput implements CliOutput {
         private static boolean jansiInstalled;
 
         public JansiCliOutput() {
@@ -99,11 +104,6 @@ public class CliUtil {
         @Override
         public void printError(String message) {
             System.err.println(ansi().fgRed().a("[ERROR] ").reset().a(message));
-        }
-
-        @Override
-        public void printException(Throwable ex) {
-            printError("Application failed: "+ex.getMessage());
         }
 
         @Override
@@ -134,5 +134,76 @@ public class CliUtil {
             ShutdownHooks.register(AnsiConsole::systemUninstall);
             jansiInstalled = AnsiConsole.isInstalled();
         }
+    }
+
+    private static class AbstractCliOutput {
+        public void printException(Throwable ex) {
+            printError(describeException(null, ex));
+        }
+
+        public void printException(String message, Throwable e) {
+            printError(describeException(message, e));
+        }
+
+        private static Throwable unwrapPicoCliExceptions(Throwable e) {
+            Throwable t = e;
+            while (t.getCause() != null && t instanceof CommandLine.PicocliException) {
+                t = t.getCause();
+            }
+            return t;
+        }
+
+        private String padLines(int i, String text) {
+            if (i<0) {
+                throw new IllegalArgumentException();
+            }
+
+            char[] padding = new char[i];
+            Arrays.fill(padding, ' ');
+            String paddingString = new String(padding);
+            return Arrays.stream(text.split("\n"))
+                    .map(e -> paddingString + e)
+                    .collect(Collectors.joining(System.lineSeparator()));
+        }
+
+        private static String getExceptionStacktrace(Throwable t) {
+            if (t == null) {
+                return "";
+            }
+            StringWriter stringWriter = new StringWriter();
+            t.printStackTrace(new PrintWriter(stringWriter));
+            return stringWriter.toString();
+        }
+
+        protected String describeException(String message, Throwable e) {
+            boolean descriptiveMessageProvided = message != null && !message.isEmpty();
+            if (!verbose) {
+                if (descriptiveMessageProvided) {
+                    return String.format("Application failed: %s(use --verbose for detailed message).", message);
+                } else {
+                    return "Application failed(use --verbose for detailed message).";
+                }
+            }
+
+            Throwable t = AbstractCliOutput.unwrapPicoCliExceptions(e);
+            StringBuilder builder = new StringBuilder();
+            String exceptionMessage = t.getMessage();
+            boolean exceptionHasMessage = exceptionMessage != null;
+
+            builder.append("Application failed");
+            if (exceptionHasMessage) {
+                builder.append(": ").append(exceptionMessage);
+            } else if (descriptiveMessageProvided) {
+                builder.append(": ").append(message);
+            } else {
+                builder.append(":");
+            }
+            builder.append(System.lineSeparator());
+            builder.append(padLines(2, getExceptionStacktrace(t)));
+
+            return builder.toString();
+        }
+
+
     }
 }

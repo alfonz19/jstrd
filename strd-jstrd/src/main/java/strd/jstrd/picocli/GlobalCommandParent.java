@@ -5,13 +5,13 @@ import strd.jstrd.util.CliUtil;
 
 public class GlobalCommandParent {
     @CommandLine.Mixin
-    protected GlobalMixin jansiMixin;
-
-//    public boolean isJansi() {
-//        return jansiMixin.isJansi();
-//    }
+    protected GlobalMixin globalMixin;
 
     public void setJansi(boolean jansi) {
         CliUtil.setUseJansiOutput(jansi);
+    }
+
+    public void setVerbose(boolean verbose) {
+        CliUtil.setVerbose(verbose);
     }
 }

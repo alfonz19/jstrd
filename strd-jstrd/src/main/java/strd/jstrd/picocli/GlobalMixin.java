@@ -17,9 +17,11 @@ public class GlobalMixin {
         getParent().setJansi(jansi);
     }
 
-//    public boolean isJansi() {
-//        return getParent().isJansi();
-//    }
+    @CommandLine.Option(names = {"-v", "--verbose"}, description = "Will enable verbose output. More info, full exceptions. (default: ${DEFAULT-VALUE})", defaultValue = "false")
+    public void setVerbose(boolean verbose) {
+        getParent().setVerbose(verbose);
+    }
+
 
     @CommandLine.Option(names = "--help", usageHelp = true, description = "display this help and exit")
     boolean help;
