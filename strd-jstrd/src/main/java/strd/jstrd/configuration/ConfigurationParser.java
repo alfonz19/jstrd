@@ -62,7 +62,7 @@ public class ConfigurationParser {
 
         if (validationResult.isEmpty()) {
 
-
+//TODO MMUCHA: cleanup.
 //            1. finish containers service loader factories.
 //            2. go over referenced buttons and containers, try to instantiate them, converting whole document to transformed tree.
 //            3. validate buttons / containers against declared properties. warn about unknown properties.
