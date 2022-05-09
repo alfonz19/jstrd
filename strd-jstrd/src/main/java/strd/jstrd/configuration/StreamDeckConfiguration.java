@@ -1,6 +1,6 @@
 package strd.jstrd.configuration;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
@@ -10,6 +10,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @SuppressWarnings("unused")
 public class StreamDeckConfiguration {
@@ -21,7 +22,6 @@ public class StreamDeckConfiguration {
         return devices;
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class DeviceConfiguration {
         public static final String LAYOUT_MUST_BE_SPECIFIED = "Layout must be specified";
         public static final String SERIAL_VERSION_MUST_BE_SET = "serial version must be set";
@@ -63,7 +63,6 @@ public class StreamDeckConfiguration {
         }
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
     @ContainerValidation
     public static class ContainerConfiguration extends CommonConfiguration {
         @Valid
@@ -104,32 +103,25 @@ public class StreamDeckConfiguration {
         }
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ButtonConfiguration extends CommonConfiguration {
 
+        @JsonProperty("configurations")
         private final List<ConditionalButtonConfiguration> conditionalConfigurations = new ArrayList<>();
 
-        public Map<String, Object> properties;
+        public Optional<ConditionalButtonConfiguration> findApplicableConditionalButtonConfiguration() {
+            int numberOfConfigurations = conditionalConfigurations.size();
+            if (numberOfConfigurations == 0) {
+                return Optional.empty();
+            }
 
-        public Map<String, Object> findFirstValidConditionalButtonConfigurationProperties() {
-            return conditionalConfigurations.stream()
-                    .filter(e->/*evaluateEl()*/true)    //TODO MMUCHA: implement!
-                    .map(ConditionalButtonConfiguration::getProperties)
+            return Optional.of(conditionalConfigurations.stream()
+                    .filter(e ->/*evaluateEl()*/false)    //TODO MMUCHA: implement!
                     .findFirst()
-                    .orElse(properties);
+                    .orElseGet(() -> conditionalConfigurations.get(numberOfConfigurations - 1)));
         }
 
         public List<ConditionalButtonConfiguration> getConditionalConfigurations() {
             return conditionalConfigurations;
-        }
-
-        public Map<String, Object> getProperties() {
-            return properties;
-        }
-
-        public ButtonConfiguration setProperties(Map<String, Object> properties) {
-            this.properties = properties;
-            return this;
         }
 
 //        public String index;
@@ -140,6 +132,9 @@ public class StreamDeckConfiguration {
     public static class ConditionalButtonConfiguration {
         private String el;
         private Map<String, Object> properties;
+        @JsonProperty("action")
+        @Valid
+        private ActionConfiguration actionConfiguration;
 
         public String getEl() {
             return el;
@@ -158,6 +153,10 @@ public class StreamDeckConfiguration {
             this.properties = properties;
             return this;
         }
+    }
+
+    public static class ActionConfiguration extends CommonConfiguration {
+
     }
 
     public static class CommonConfiguration {

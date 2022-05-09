@@ -5,6 +5,7 @@ import strd.jstrd.configuration.StreamDeckConfiguration.ButtonConfiguration;
 import strd.jstrd.configuration.StreamDeckConfiguration.ContainerConfiguration;
 import strd.jstrd.exception.InvalidConfigurationException;
 import strd.jstrd.exception.JstrdException;
+import strd.jstrd.streamdeck.unfinished.FactoryPropertiesDefinition;
 import strd.jstrd.streamdeck.unfinished.button.Button;
 import strd.jstrd.streamdeck.unfinished.button.ButtonFactory;
 import strd.jstrd.streamdeck.unfinished.buttoncontainer.ButtonContainer;
@@ -17,7 +18,6 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class LayoutConfigurationToInstances {
 
@@ -74,13 +74,15 @@ public class LayoutConfigurationToInstances {
         ButtonFactory buttonFactory = ServiceLoaderUtil.getService(ButtonFactory.class, buttonFilteringPredicate)
                 .orElseThrow(throwIfButtonNotFound);
 
+        if (buttonConfig.getConditionalConfigurations().isEmpty() && hasRequiredProperty(buttonFactory)) {
+            throw new InvalidConfigurationException(String.format("Button type=\"%s\", name=\"%s\" misses required configuration.", buttonConfig.getType(), buttonConfig.getName()));
+        }
+
         //TODO MMUCHA: describe failures better, provide what fails and where(path to failure).
         //validate every configuration provided in button config.
-        List<String> validationIssues =
-                Stream.concat(buttonConfig.getConditionalConfigurations()
-                                .stream()
-                                .map(StreamDeckConfiguration.ConditionalButtonConfiguration::getProperties),
-                        Stream.of(buttonConfig.getProperties()))
+        List<String> validationIssues = buttonConfig.getConditionalConfigurations()
+                .stream()
+                .map(StreamDeckConfiguration.ConditionalButtonConfiguration::getProperties)
                 .flatMap(e -> buttonFactory.validateProperties(e).stream())
                 .collect(Collectors.toList());
 
@@ -88,5 +90,12 @@ public class LayoutConfigurationToInstances {
             throw new InvalidConfigurationException("Following issues were found: " + validationIssues);
         }
         return buttonFactory.create(buttonConfig);
+    }
+
+    private boolean hasRequiredProperty(ButtonFactory buttonFactory) {
+        return buttonFactory.getConfigurationDefinition()
+                .getPropertyDefinitions()
+                .stream()
+                .anyMatch(FactoryPropertiesDefinition.PropertyDefinition::isRequired);
     }
 }

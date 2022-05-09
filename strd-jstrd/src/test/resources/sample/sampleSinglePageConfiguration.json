@@ -16,22 +16,40 @@
           },
           {
             "type": "color",
+            "name": "1",
             "description": "simple color button",
-            "properties": {
-              "color": "#ff0000"
-            }
+            "configurations": [
+              {
+                "properties": {
+                  "color": "#ff0000"
+                }
+              }
+            ]
           },
           {
             "type": "color",
-            "properties": {
-              "color": "#00ff00"
-            }
+            "name": "2",
+            "configurations": [
+              {
+                "properties": {
+                  "color": "#00ff00"
+                }
+              }
+            ]
           },
           {
             "type": "color",
-            "properties": {
-              "color": "#0000ff"
-            }
+            "name": "3",
+            "configurations": [
+              {
+                "properties": {
+                  "color": "#0000ff"
+                },
+                "action": {
+                  "type": "quit"
+                }
+              }
+            ]
           }
         ]
       }

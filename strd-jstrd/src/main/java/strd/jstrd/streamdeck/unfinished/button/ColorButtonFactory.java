@@ -1,8 +1,11 @@
 package strd.jstrd.streamdeck.unfinished.button;
 
+import strd.jstrd.configuration.StreamDeckConfiguration;
 import strd.jstrd.configuration.StreamDeckConfiguration.ButtonConfiguration;
 import strd.jstrd.exception.JstrdException;
+import strd.jstrd.streamdeck.unfinished.AbstractConfigurableFactory;
 import strd.jstrd.streamdeck.unfinished.FactoryPropertiesDefinition;
+import strd.lib.common.exception.CannotHappenException;
 
 import java.awt.*;
 import java.util.Map;
@@ -11,25 +14,31 @@ import java.util.regex.Pattern;
 
 import static strd.jstrd.streamdeck.unfinished.FactoryPropertiesDefinition.PropertyDataType.COLOR;
 
-////TODO MMUCHA: use parent.
-public class ColorButtonFactory implements ButtonFactory {
+public class ColorButtonFactory extends AbstractConfigurableFactory implements ButtonFactory {
 
     public static final String COLOR_PROPERTY_NAME = "color";
     public static final String COLOR_PROPERTY_DESC =
             "Color of background. Example: '#FFFFFF'. No alpha, no nothing. Symbol # and 6 hex digits.";
 
-    @Override
-    public String getObjectType() {
-        return "color";
+    public ColorButtonFactory() {
+        super("color", new FactoryPropertiesDefinition()
+                .addProperty(true,
+                        COLOR_PROPERTY_NAME,
+                        COLOR,
+                        COLOR_PROPERTY_DESC,
+                        FactoryPropertiesDefinition.PropertyDefinition.exceptionMessageAsErrorString(ColorButtonFactory::getColorProperty)));
     }
 
     @Override
     public Button create(ButtonConfiguration buttonConfiguration) {
-        Map<String, Object> props = buttonConfiguration.findFirstValidConditionalButtonConfigurationProperties();
+        Map<String, Object> props =
+                buttonConfiguration.findApplicableConditionalButtonConfiguration()
+                        .map(StreamDeckConfiguration.ConditionalButtonConfiguration::getProperties)
+                        .orElseThrow(() -> new CannotHappenException("Should be protected by validation"));
         return getColorProperty(props.get(COLOR_PROPERTY_NAME));
     }
 
-    private ColorButton getColorProperty(Object colorValue) {
+    private static ColorButton getColorProperty(Object colorValue) {
         String colorString = getColorString(colorValue);
 
         if (colorString == null) {
@@ -48,7 +57,7 @@ public class ColorButtonFactory implements ButtonFactory {
         }
     }
 
-    private String getColorString(Object colorValue) {
+    private static String getColorString(Object colorValue) {
         try {
             return (String) colorValue;
         } catch (ClassCastException | NumberFormatException e) {
@@ -57,19 +66,9 @@ public class ColorButtonFactory implements ButtonFactory {
 
     }
 
-    private JstrdException createInvalidConfigurationException(Object providedColorString) {
+    private static JstrdException createInvalidConfigurationException(Object providedColorString) {
         //TODO MMUCHA: custom exception
         return new JstrdException(String.format("Illegal value of property \"%s\"(%s). Provided value: \"%s\"",
                 COLOR_PROPERTY_NAME, COLOR_PROPERTY_DESC, providedColorString));
-    }
-
-    @Override
-    public FactoryPropertiesDefinition getConfigurationDefinition() {
-        return new FactoryPropertiesDefinition()
-                .addProperty(true,
-                        COLOR_PROPERTY_NAME,
-                        COLOR,
-                        COLOR_PROPERTY_DESC,
-                        FactoryPropertiesDefinition.PropertyDefinition.exceptionMessageAsErrorString(this::getColorProperty));
     }
 }

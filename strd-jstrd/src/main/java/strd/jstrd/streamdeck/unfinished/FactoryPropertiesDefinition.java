@@ -78,6 +78,10 @@ public class FactoryPropertiesDefinition {
             return description;
         }
 
+        public boolean isRequired() {
+            return required;
+        }
+
         /**
          * @return true if {@value } is valid for this property.
          */
