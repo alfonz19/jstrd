@@ -28,11 +28,6 @@ public class ColorButtonFactory extends AbstractConfigurableFactory implements B
 
     @Override
     public Button create(ButtonConfiguration buttonConfiguration) {
-        Map<String, Object> props =
-                buttonConfiguration.findApplicableConditionalButtonConfiguration()
-                        .map(StreamDeckConfiguration.ConditionalButtonConfiguration::getProperties)
-                        .orElseThrow(() -> new CannotHappenException("Should be protected by validation"));
-        Color colorProperty = PropertiesUtil.getColorProperty(props, COLOR_PROPERTY_NAME);
-        return new ColorButton(colorProperty);
+        return new ColorButton(buttonConfiguration);
     }
 }

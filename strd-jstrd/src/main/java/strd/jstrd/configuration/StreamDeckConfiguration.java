@@ -2,6 +2,7 @@ package strd.jstrd.configuration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.validation.Valid;
@@ -123,6 +124,7 @@ public class StreamDeckConfiguration {
         private ActionConfiguration actionConfiguration;
     }
 
+    @NoArgsConstructor
     @Getter
     @Setter
     public static class ActionConfiguration {
@@ -130,6 +132,15 @@ public class StreamDeckConfiguration {
         private String type;
 //        private List<String> boundEvents;//TODO MMUCHA: implement.
         private Map<String, Object> properties;
+
+        public ActionConfiguration(String type) {
+            this(type, null);
+        }
+
+        public ActionConfiguration(String type, Map<String, Object> properties) {
+            this.type = type;
+            this.properties = properties;
+        }
     }
 }
 

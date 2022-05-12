@@ -217,7 +217,12 @@ public class StreamDeck {
         public void buttonStateUpdated(HidLibrary.StreamDeckInfo streamDeckInfo,
                                        int buttonIndex,
                                        boolean buttonState) {
-            shownButtons.get(buttonIndex).updateButtonState(buttonState);
+            Button button = shownButtons.get(buttonIndex);
+            if (button == null) {
+                log.error("synchronization issue! Ignoring button press/release!!!");
+            } else {
+                button.updateButtonState(buttonState);
+            }
         }
     }
 }

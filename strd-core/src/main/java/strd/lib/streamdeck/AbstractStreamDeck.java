@@ -147,7 +147,10 @@ public abstract class AbstractStreamDeck implements StreamDeckDevice {
 
             Flux.<Tuple2<byte[], Integer>>create(sink -> consumer = sink::next)
                     .publishOn(scheduler)
-                    .subscribe(this::processInputReport);
+                    .doOnNext(this::processInputReport)
+                    .onErrorContinue(Exception.class,
+                            (throwable, obj) -> log.error("Error during processing input from streamdeck", throwable))
+                    .subscribe();
         }
 
         @Override
