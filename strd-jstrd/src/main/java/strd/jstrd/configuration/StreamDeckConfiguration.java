@@ -1,6 +1,8 @@
 package strd.jstrd.configuration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
@@ -63,8 +65,14 @@ public class StreamDeckConfiguration {
         }
     }
 
+    @Getter
+    @Setter
     @ContainerValidation
-    public static class ContainerConfiguration extends CommonConfiguration {
+    public static class ContainerConfiguration {
+        @NotEmpty
+        private String type;
+        private String name;
+        private String description;
         @Valid
         public List<ContainerConfiguration> containers;
         @Valid
@@ -74,36 +82,16 @@ public class StreamDeckConfiguration {
         public boolean isLeafContainer() {
             return getContainers() == null;
         }
-
-        public List<ContainerConfiguration> getContainers() {
-            return containers;
-        }
-
-        public ContainerConfiguration setContainers(List<ContainerConfiguration> containers) {
-            this.containers = containers;
-            return this;
-        }
-
-        public List<ButtonConfiguration> getButtons() {
-            return buttons;
-        }
-
-        public ContainerConfiguration setButtons(List<ButtonConfiguration> buttons) {
-            this.buttons = buttons;
-            return this;
-        }
-
-        public Map<String, Object> getProperties() {
-            return properties;
-        }
-
-        public ContainerConfiguration setProperties(Map<String, Object> properties) {
-            this.properties = properties;
-            return this;
-        }
     }
 
-    public static class ButtonConfiguration extends CommonConfiguration {
+    @Getter
+    @Setter
+    public static class ButtonConfiguration {
+
+        @NotEmpty
+        private String type;
+        private String name;
+        private String description;
 
         @JsonProperty("configurations")
         private final List<ConditionalButtonConfiguration> conditionalConfigurations = new ArrayList<>();
@@ -120,79 +108,28 @@ public class StreamDeckConfiguration {
                     .orElseGet(() -> conditionalConfigurations.get(numberOfConfigurations - 1)));
         }
 
-        public List<ConditionalButtonConfiguration> getConditionalConfigurations() {
-            return conditionalConfigurations;
-        }
-
 //        public String index;
 //        public String buttonType;
 //        public Map<String, String> configuration;
     }
 
+    @Getter
+    @Setter
     public static class ConditionalButtonConfiguration {
         private String el;
         private Map<String, Object> properties;
         @JsonProperty("action")
         @Valid
         private ActionConfiguration actionConfiguration;
-
-        public String getEl() {
-            return el;
-        }
-
-        public ConditionalButtonConfiguration setEl(String el) {
-            this.el = el;
-            return this;
-        }
-
-        public Map<String, Object> getProperties() {
-            return properties;
-        }
-
-        public ConditionalButtonConfiguration setProperties(Map<String, Object> properties) {
-            this.properties = properties;
-            return this;
-        }
     }
 
-    public static class ActionConfiguration extends CommonConfiguration {
-
-    }
-
-    public static class CommonConfiguration {
+    @Getter
+    @Setter
+    public static class ActionConfiguration {
         @NotEmpty
         private String type;
-
-        private String name;
-
-        private String description;
-
-        public String getType() {
-            return type;
-        }
-
-        public CommonConfiguration setType(String type) {
-            this.type = type;
-            return this;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public CommonConfiguration setName(String name) {
-            this.name = name;
-            return this;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public CommonConfiguration setDescription(String description) {
-            this.description = description;
-            return this;
-        }
+//        private List<String> boundEvents;//TODO MMUCHA: implement.
+        private Map<String, Object> properties;
     }
 }
 

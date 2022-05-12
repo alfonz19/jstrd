@@ -14,11 +14,10 @@ public abstract class AbstractConfigurableFactory implements ConfigurableFactory
     private final FactoryPropertiesDefinition configurationDefinition;
 
     public AbstractConfigurableFactory(String objectType) {
-        this(objectType, FactoryPropertiesDefinition.EMPTY);
+        this(objectType, new FactoryPropertiesDefinition());
     }
 
-    public AbstractConfigurableFactory(String objectType,
-                                       FactoryPropertiesDefinition configurationDefinition) {
+    public AbstractConfigurableFactory(String objectType, FactoryPropertiesDefinition configurationDefinition) {
         this.objectType = objectType;
         this.configurationDefinition = configurationDefinition;
     }
