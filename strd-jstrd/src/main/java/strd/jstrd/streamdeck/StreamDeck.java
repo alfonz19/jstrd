@@ -6,11 +6,8 @@ import reactor.core.scheduler.Schedulers;
 import strd.jstrd.configuration.StreamDeckConfiguration;
 import strd.jstrd.streamdeck.unfinished.StreamDeckButtonSet;
 import strd.jstrd.streamdeck.unfinished.button.Button;
-import strd.jstrd.streamdeck.unfinished.button.ClockButton;
 import strd.jstrd.streamdeck.unfinished.button.ColorButton;
-import strd.jstrd.streamdeck.unfinished.button.TickButton;
 import strd.jstrd.streamdeck.unfinished.buttoncontainer.ButtonContainer;
-import strd.jstrd.streamdeck.unfinished.buttoncontainer.SimpleButtonContainer;
 import strd.jstrd.util.CliUtil;
 import strd.lib.iconpainter.IconPainter;
 import strd.lib.iconpainter.factory.IconPainterFactory;
@@ -19,6 +16,7 @@ import strd.lib.streamdeck.StreamDeckDevice;
 
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
@@ -41,6 +39,8 @@ public class StreamDeck {
     private final Button blankButton;
     private ButtonContainer rootButtonContainer;
 
+    private Consumer<Runnable> actionConsumer;
+
     public StreamDeck(StreamDeckDevice streamDeckDevice, IconPainterFactory iconPainterFactory) {
         this.streamDeckDevice = streamDeckDevice;
         int keyCount = streamDeckDevice.getStreamDeckInfo().getStreamDeckVariant().getKeyCount();
@@ -50,6 +50,12 @@ public class StreamDeck {
 
         blankButton = new ColorButton();
         buttonsStateUpdatedListener = new ButtonStateUpdaterListener();
+
+        //TODO MMUCHA: disposing? Revisit lifecycle of this class!
+        Disposable workerFlux = Flux.<Runnable>create(sink -> actionConsumer = sink::next)
+                .doOnNext(Runnable::run)
+                .onErrorContinue((throwable, object)-> log.error("Coding error, StreamdeckWorker catch exception which should have been catch elsewhere.", throwable))
+                .subscribe();
     }
 
     //TODO MMUCHA: method start.
@@ -75,17 +81,20 @@ public class StreamDeck {
     }
 
     public StreamDeck start() {
-        updateStreamDeckButtons();
+        actionConsumer.accept(this::updateStreamDeckButtons);
         streamDeckDevice.addButtonsStateUpdatedListener(buttonsStateUpdatedListener);
         
         tickingFluxDisposable = Flux.interval(configuration.getUpdateInterval())
-                .subscribe(e -> updateStreamDeckButtons(),
-                ex -> {
-                    //somehow unregister the device.
-                    //TODO MMUCHA: can we somehow throw exception?
-                    log.error("Updating streamdeck thrown exception, halting update process", ex);
-                    CliUtil.printException(ex);
-                });
+                .doOnNext(e->{
+                    //prepare instance for another round.
+                    shownButtons.flip();
+                })
+                .doOnNext(e->actionConsumer.accept(this::updateStreamDeckButtons))
+                .doOnError(ex -> {
+                    log.error("Updating streamdeck thrown exception, coding error. Halting.", ex);
+                    CliUtil.printExceptionAndHalt(ex);
+                })
+                .subscribe();
         return this;
     }
 
@@ -102,29 +111,24 @@ public class StreamDeck {
         rootButtonContainer.update(shownButtons);
         log.debug("Calculating buttons to show [done]");
 
-        log.debug("updating buttons.");
+        log.debug("updating buttons [start]");
         Flux.range(0, shownButtons.getButtonCount())
                 .publishOn(Schedulers.parallel())
                 .filter(shownButtons::buttonNeedsUpdate)
-                .subscribe(index -> {
-                    log.debug("Have to update button {}", index);
+                .doOnNext(index -> {
                     Button button = shownButtons.get(index);
                     if (button == null) {
-                        log.debug("Replacing null-value button with blank button.");
+                        log.debug("Button index={} needs update, button wasn't set, using blank image instead", index);
                         button = blankButton;
+                    } else {
+                        log.debug("Button index={} needs update, asking it to redraw", index);
                     }
 
                     streamDeckDevice.setButtonImage(index, button.draw());
-                }, ex -> {
-                    //this was caused by single buttong update, not whole device; the whole device is below.
-                    //TODO MMUCHA: cli error, unregister device.
-                    log.error("Updating streamdeck thrown exception, halting update process", ex);
-                }, () -> {
-
-                    //prepare instance for another round.
-                    shownButtons.flip();
-                    log.debug("updating buttons [done]");
-                });
+                })
+                .onErrorContinue((ex, item) -> log.error("Error updating button index={}", item, ex))
+                .doOnComplete(() -> log.debug("updating buttons [done]"))
+                .subscribe();
     }
 
     public StreamDeck stop() {
@@ -221,7 +225,11 @@ public class StreamDeck {
             if (button == null) {
                 log.error("synchronization issue! Ignoring button press/release!!!");
             } else {
-                button.updateButtonState(buttonState);
+                actionConsumer.accept(()->{ try {
+                    button.updateButtonState(buttonState);
+                } catch (Exception e) {
+                    log.error("Updating button state produced exception. This should not happen, exception should have been catch sooner.", e);
+                }});
             }
         }
     }

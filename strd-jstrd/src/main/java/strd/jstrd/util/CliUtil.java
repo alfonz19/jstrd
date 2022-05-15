@@ -69,6 +69,10 @@ public class CliUtil {
     public static void printException(Throwable ex) {
         cliOutput.printException(ex);
     }
+    public static void printExceptionAndHalt(Throwable ex) {
+        cliOutput.printException(ex);
+        System.exit(1);
+    }
 
     private static class PlainTextCliOutput extends AbstractCliOutput implements CliOutput {
         @Override
