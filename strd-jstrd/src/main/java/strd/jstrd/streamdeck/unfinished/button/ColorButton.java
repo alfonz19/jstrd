@@ -12,6 +12,7 @@ import java.awt.Color;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 public class ColorButton implements Button {
@@ -23,27 +24,36 @@ public class ColorButton implements Button {
 
     private final ButtonBehavior bb = new ButtonBehavior();
     //TODO MMUCHA: read from configuration
-    private final List<Action> actionList =
-            Collections.singletonList(FactoryLoader.findActionFactory("quit").create(new ActionConfiguration("quit")));
+    private final List<Action> actionList;
 
     public ColorButton() {
-        this(0, 0, 0);
+        this(0, 0, 0, Collections.emptyList());
     }
 
-    public ColorButton(int red, int green, int blue) {
+    public ColorButton(int red, int green, int blue, List<Action> actionList) {
         this.red = red;
         this.green = green;
         this.blue = blue;
+        this.actionList = actionList;
     }
 
-    public ColorButton(Color color) {
-        this(color.getRed(), color.getGreen(), color.getBlue());
+    public ColorButton(Color color, List<Action> actionList) {
+        this(color.getRed(), color.getGreen(), color.getBlue(), actionList);
     }
 
-    public ColorButton(StreamDeckConfiguration.ButtonConfiguration buttonConfiguration) {
-        this(PropertiesUtil.getColorProperty(buttonConfiguration.findApplicableConditionalButtonConfiguration()
-                .map(StreamDeckConfiguration.ConditionalButtonConfiguration::getProperties)
-                .orElseThrow(() -> new CannotHappenException("Should be protected by validation")), ColorButtonFactory.COLOR_PROPERTY_NAME));
+    public static ColorButton create(StreamDeckConfiguration.ButtonConfiguration buttonConfiguration) {
+        //TODO MMUCHA: make dynamic!
+        StreamDeckConfiguration.ConditionalButtonConfiguration staticConfig =
+                buttonConfiguration.findApplicableConditionalButtonConfiguration()
+                        .orElseThrow(() -> new CannotHappenException("Should be protected by validation"));
+
+        Color color =
+                PropertiesUtil.getColorProperty(staticConfig.getProperties(), ColorButtonFactory.COLOR_PROPERTY_NAME);
+        ActionConfiguration actionConfiguration = staticConfig.getActionConfiguration();
+
+
+        throw new UnsupportedOperationException("Not implemented yet");
+        return new ColorButton(color, actionList);
     }
 
     @Override
