@@ -17,6 +17,7 @@
     <module>strd-core</module>
     <module>strd-sample</module>
     <module>strd-jstrd</module>
+    <module>strd-jmh</module>
   </modules>
 
   <properties>
